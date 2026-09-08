@@ -1,24 +1,36 @@
 import { ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export function Screen({
   children,
   title,
   onBack,
   hideBack,
+  defaultBack = "/roles",
 }: {
   children: ReactNode;
   title?: string;
   onBack?: (() => void) | true;
   hideBack?: boolean;
+  defaultBack?: string;
 }) {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // A default location.key ("default") means we were loaded directly (deep
+  // link / refresh / login redirect) with no in-app history to go back to.
+  // In that case navigate(-1) would leave the app or do nothing, so we fall
+  // back to a sensible in-app target instead.
+  const goBack = () => {
+    if (location.key !== "default") {
+      navigate(-1);
+    } else {
+      navigate(defaultBack);
+    }
+  };
+
   const handleBack =
-    hideBack
-      ? undefined
-      : onBack === true
-      ? () => navigate(-1)
-      : onBack ?? (() => navigate(-1));
+    hideBack ? undefined : onBack === true ? goBack : onBack ?? goBack;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">

@@ -16,10 +16,6 @@ import NotificationInboxPage from "./pages/NotificationInboxPage";
 import GovernmentDashboardPage from "./pages/GovernmentDashboardPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
-function hasOnboarded() {
-  return localStorage.getItem("shramsetu.onboarded_language") === "true";
-}
-
 function GovernmentRoute({ children }: { children: React.ReactNode }) {
   const token = localStorage.getItem("gov_token");
   if (!token) return <Navigate to="/government/login" replace />;
@@ -30,7 +26,7 @@ export default function App() {
   return (
     <Routes>
       {/* Public routes */}
-      <Route path="/" element={hasOnboarded() ? <Navigate to="/roles" replace /> : <LanguageSelectPage />} />
+      <Route path="/" element={<LanguageSelectPage />} />
       <Route path="/language" element={<LanguageSelectPage />} />
       <Route path="/roles" element={<StakeholderSelectPage />} />
       <Route path="/roles/:role" element={<ComingSoonPage />} />
