@@ -36,6 +36,7 @@ export default function App() {
       <Route path="/roles/:role" element={<ComingSoonPage />} />
 
       {/* Worker routes */}
+      <Route path="/login" element={<Navigate to="/worker/login" replace />} />
       <Route path="/worker/login" element={<WorkerLoginPage />} />
       <Route path="/worker/register" element={<WorkerRegisterPage />} />
       <Route
