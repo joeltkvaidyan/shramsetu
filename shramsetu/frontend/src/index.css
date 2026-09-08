@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: "Noto Sans", "Noto Sans Devanagari", "Noto Sans Bengali", "Noto Sans Telugu",
+    "Noto Sans Tamil", "Noto Sans Malayalam", system-ui, sans-serif;
+}
+
+/* Large tap targets for accessibility per spec */
+.btn-primary {
+  @apply w-full rounded-2xl bg-brand-600 px-6 py-4 text-lg font-semibold text-white shadow-md
+    transition active:scale-[0.98] hover:bg-brand-700 disabled:opacity-50 disabled:pointer-events-none;
+}
+
+.btn-secondary {
+  @apply w-full rounded-2xl border-2 border-brand-600 px-6 py-4 text-lg font-semibold text-brand-700
+    dark:text-brand-300 transition active:scale-[0.98] hover:bg-brand-50 dark:hover:bg-brand-900;
+}
+
+.card {
+  @apply rounded-2xl bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 p-4;
+}
+
+.input-field {
+  @apply w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800
+    px-4 py-3 text-base text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500;
+}

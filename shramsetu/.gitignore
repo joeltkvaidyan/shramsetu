@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+*.db
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# Env
+.env
+!.env.example
+
+# Uploads / generated indexes
+backend/uploads/*
+!backend/uploads/.gitkeep
+backend/rag/index/
+backend/rag/index/*
+
+# OS
+.DS_Store

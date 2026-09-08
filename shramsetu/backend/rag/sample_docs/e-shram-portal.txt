@@ -1,0 +1,27 @@
+TITLE: e-Shram Portal — National Database of Unorganised Workers
+DEPARTMENT: Ministry of Labour and Employment, Government of India
+LAST_UPDATED: 2025-04-01
+---
+The e-Shram portal is the National Database of Unorganised Workers (NDUW), created so that migrant
+workers, construction workers, gig workers, domestic workers, street vendors, agricultural labourers
+and other unorganised sector workers can register and receive a UAN (Universal Account Number) card.
+
+Who can register: Any unorganised worker aged 16 to 59 years who is not a member of EPFO or ESIC and
+does not pay income tax.
+
+Benefits of the e-Shram card:
+- A 12-digit Universal Account Number valid across India, portable if the worker migrates to another state.
+- Automatic eligibility check for central welfare schemes.
+- Accident insurance cover under the PM Suraksha Bima Yojana linked benefit of up to Rs 2 lakh for
+  accidental death or full disability, and Rs 1 lakh for partial disability, for registered workers.
+- Access to a self-declared employment history that can be shown to employers or government offices.
+
+How to register: Workers can self-register using the eshram.gov.in website or mobile app using their
+Aadhaar-linked mobile number, or visit the nearest Common Service Centre (CSC) with their Aadhaar card
+and bank account details free of cost.
+
+Documents required: Aadhaar number, mobile number linked to Aadhaar (or use of Aadhaar OTP/biometric
+authentication at a CSC if the number is not linked), and bank account details for benefit transfer.
+
+Grievance redressal: Workers can call the e-Shram helpline number 14434 (toll-free) for help in
+registration or to report issues with their card.

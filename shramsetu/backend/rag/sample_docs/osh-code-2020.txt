@@ -1,0 +1,54 @@
+TITLE: Occupational Safety, Health and Working Conditions Code, 2020 — Modern Labour Law Framework
+DEPARTMENT: Ministry of Labour and Employment, Government of India
+LAST_UPDATED: 2025-06-15
+---
+The Occupational Safety, Health and Working Conditions (OSH) Code, 2020 consolidates and 
+reforms 13 central labour laws, including the Factories Act, Mines Act, Inter-State Migrant 
+Workmen Act, and Contract Labour Act. It is designed to provide a modern, unified framework for 
+occupational safety, health, and working conditions for all workers, including migrant workers.
+
+Key provisions for migrant workers:
+1. Inter-state migrant workers: The code provides specific protections for workers who are 
+   recruited in one state to work in another state. The principal employer must ensure:
+   - Registration of the establishment with the relevant authority.
+   - A passbook for each inter-state migrant worker containing details of identity, wages, 
+     and working conditions.
+   - Journey allowance for travel from the home state to the workplace.
+   - Suitable residential accommodation during the period of employment.
+   - Medical facilities at the workplace.
+   - Displacement allowance at the time of recruitment.
+2. Equal wages: Inter-state migrant workers must be paid the same wages as other workers doing 
+   the same or similar work in the establishment.
+3. Working hours: The code limits working hours to 8 hours per day and 48 hours per week, 
+   with overtime paid at twice the ordinary rate.
+4. Safety standards: The code mandates safety standards for all workplaces, including:
+   - Provision of clean drinking water.
+   - Adequate toilet and washing facilities.
+   - Ventilation, lighting, and temperature control.
+   - First-aid facilities and accident prevention measures.
+   - Safety training for workers.
+5. Annual health examinations: Workers exposed to occupational hazards must be provided with 
+   annual health examinations at the employer's cost.
+
+Registration and documentation:
+- Every inter-state migrant worker must be registered by the principal employer within 30 days 
+  of employment.
+- The employer must issue a passbook to each worker containing:
+  - Name and address of the worker.
+  - Name and address of the employer.
+  - Nature of work.
+  - Wage rate and other terms of employment.
+  - Period of employment.
+- The passbook must be returned to the worker upon termination of employment.
+
+Penalties for violations:
+- Failure to register inter-state migrant workers: Fine up to Rs 3 lakh.
+- Non-payment of displacement allowance: Fine up to Rs 1 lakh.
+- Non-provision of residential accommodation: Fine up to Rs 2 lakh.
+- Violation of safety standards: Fine up to Rs 5 lakh and/or imprisonment up to 2 years.
+
+How to enforce rights:
+- File a complaint with the Inspector-cum-Facilitator.
+- Approach the Labour Court or Industrial Tribunal.
+- Call the labour helpline 14400 for guidance.
+- Use the SHRAM Suvidha Portal (shramsuvidha.gov.in) for online registration and compliance.

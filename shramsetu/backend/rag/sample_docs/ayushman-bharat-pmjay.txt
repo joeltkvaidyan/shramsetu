@@ -1,0 +1,49 @@
+TITLE: Ayushman Bharat Pradhan Mantri Jan Arogya Yojana (PM-JAY) — Health Insurance
+DEPARTMENT: Ministry of Health and Family Welfare, Government of India
+LAST_UPDATED: 2025-04-01
+---
+Ayushman Bharat Pradhan Mantri Jan Arogya Yojana (PM-JAY) — Health Insurance
+
+Ayushman Bharat PM-JAY is the world's largest government-funded health insurance scheme providing coverage up to Rs 5 lakh per family per year for secondary and tertiary hospitalisation.
+
+Key Features:
+- Covers hospitalisation expenses including pre and post-hospitalisation for up to 15 days
+- Covers 1,929 medical and surgical packages including surgery, day care, ICU
+- Cashless and paperless access at empanelled public and private hospitals
+- Portable across India — get treated at any empanelled hospital in any state
+- No restriction on family size, age, or gender
+
+Eligibility:
+- Based on Socio-Economic Caste Census (SECC) 2011 data
+- Families identified as deprived (D1-D7) and occupational categories
+- Rural: families without adult male member (16-59 years), disabled members, landless labourers, manual scavengers
+- Urban: street vendors, domestic workers, shop employees, tailors, rickshaw pullers
+- Families with monthly income up to Rs 10,000
+- Migrant workers are eligible if their family is in the SECC database
+
+How to Check Eligibility:
+1. Visit https://mera.pmjay.gov.in
+2. Enter mobile number and OTP
+3. Search by name, ration card number, or mobile number
+4. Download Ayushman card from the portal
+
+How to Use the Benefit:
+1. Visit any empanelled hospital (public or private)
+2. Show Ayushman card or provide details at the hospital help desk
+3. Hospital verifies eligibility and processes cashless treatment
+4. No upfront payment needed — insurance covers the bill
+
+Empanelled Hospitals:
+- Over 29,000 hospitals across India including government and private
+- Find nearest hospital at https://hospitals.pmjay.gov.in
+- Toll-free helpline: 14555 / 1800-111-565
+
+Important Numbers:
+- Helpline: 14555
+- Website: https://pmjay.gov.in
+- Ayushman Bharat Digital Mission: https://abdm.gov.in
+
+Documents Required:
+- Ayushman card (can be downloaded from portal)
+- Aadhaar card for identity verification
+- Any government-issued photo ID

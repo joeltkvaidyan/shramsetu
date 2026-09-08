@@ -1,0 +1,51 @@
+TITLE: Employees' Provident Fund (EPF) — Retirement Savings for Organised Workers
+DEPARTMENT: Ministry of Labour and Employment, Government of India
+LAST_UPDATED: 2025-04-15
+---
+The Employees' Provident Fund (EPF) is a retirement savings scheme managed by the Employees' 
+Provident Fund Organisation (EPFO). It provides a corpus of savings to employees for their 
+retirement, and also covers medical, housing, and education needs.
+
+Applicability:
+- Applies to every factory and establishment with 20 or more employees.
+- Both employer and employee contribute 12% of basic wages + dearness allowance to the EPF 
+  account.
+- The employee's 12% goes entirely to the EPF account.
+- The employer's 12% is split: 8.33% to EPS (pension) and 3.67% to EPF.
+
+Benefits:
+- Accumulated balance: The total EPF balance (employee + employer contributions + interest) 
+  is paid to the employee at the time of retirement, resignation, or after 2 months of 
+  unemployment.
+- Interest: EPF earns a tax-free interest rate declared annually by the government (currently 
+  around 8.15% per annum for FY 2023-24).
+- Partial withdrawal: Employees can withdraw partially for specific purposes:
+  - Housing: Up to 90% of EPF balance after 5 years of service for purchase/construction of 
+    a house.
+  - Education: Up to 50% for higher education of self or children after 7 years of service.
+  - Medical: Up to 6 times of monthly wages for medical treatment of self, spouse, children, 
+    or dependent parents.
+  - Marriage: Up to 50% for marriage of self or children after 7 years of service.
+- Pension: EPS provides a monthly pension after age 58, based on the pensionable salary and 
+  pensionable service.
+
+Universal Account Number (UAN):
+- Every EPF member is assigned a UAN, which remains the same throughout their career.
+- The UAN can be used to track EPF balance, transfer contributions between employers, and 
+  claim benefits online.
+- Activate UAN at https://unifiedportal-mem.epfindia.gov.in
+
+For migrant workers:
+- When a worker changes jobs, they can transfer their EPF balance to the new employer using 
+  the UAN.
+- If there is a gap of more than 2 months between jobs, the worker can withdraw the EPF 
+  balance.
+- The UAN is portable across India; the worker does not need a new account for each employer.
+- Ensure that the Aadhaar and bank account are linked to the UAN for online transfers and 
+  withdrawals.
+
+How to check EPF balance:
+- Use the EPFO Unified Portal: https://unifiedportal-mem.epfindia.gov.in
+- Use the UMANG app for mobile access.
+- SMS: Send "EPFOHO UAN" to 7738299899.
+- Missed call: Give a missed call to 011-22901406 from the registered mobile number.

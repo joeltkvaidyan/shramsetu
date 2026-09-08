@@ -1,0 +1,60 @@
+TITLE: Comprehensive Guide to Migrant Worker Rights in India
+DEPARTMENT: Ministry of Labour and Employment / Various Ministries, Government of India
+LAST_UPDATED: 2025-07-01
+---
+India has an estimated 100 million internal migrant workers who move from rural areas to urban 
+centres, or from less-developed states to more industrialised states, in search of employment. 
+This document provides a comprehensive overview of the rights and entitlements available to 
+migrant workers in India.
+
+Fundamental rights of migrant workers:
+1. Right to equal wages: Migrant workers are entitled to the same minimum wages as local 
+   workers for the same type of work. The Equal Remuneration Act, 1976 prohibits discrimination 
+   in wages based on gender, and the Minimum Wages Act ensures equal pay for equal work.
+2. Right to safe working conditions: All workers, regardless of their origin, have the right to 
+   work in safe and healthy conditions. The Factories Act, 1948 and the Mines Act, 1952 mandate 
+   safety standards.
+3. Right to social security: Migrant workers are entitled to social security benefits including 
+   EPF, ESI, and pension schemes, if they are employed in covered establishments.
+4. Right to food security: Through the One Nation One Ration Card scheme, migrant workers can 
+   access their food grain entitlements from any Fair Price Shop across India.
+5. Right to housing: The Inter-State Migrant Workmen Act mandates that employers provide 
+   suitable residential accommodation for migrant workers during their employment.
+6. Right to education: The Right to Education Act ensures free and compulsory education for 
+   children aged 6-14 years, regardless of their parents' employment or migration status.
+
+Key government schemes for migrant workers:
+- e-Shram Portal: National database for unorganised workers, provides UAN card and access to 
+  welfare schemes.
+- One Nation One Ration Card: Portable food security across states.
+- PM Garib Kalyan Yojana: Free foodgrains for vulnerable populations.
+- PM Suraksha Bima Yojana: Accident insurance at Rs 20 per year.
+- PM Jeevan Jyoti Bima Yojana: Life insurance at Rs 432 per year.
+- Atal Pension Yojana: Pension scheme for unorganised sector workers.
+- PM Kisan Samman Nidhi: Income support for farmer families.
+- PM SVANidhi: Credit support for street vendors.
+- BOCW Welfare Board: Benefits for registered construction workers.
+- ESI Scheme: Medical and social security benefits for covered workers.
+
+Legal protections:
+- The Inter-State Migrant Workmen Act (now subsumed into the OSH Code, 2020) provides 
+  specific protections for workers recruited across state lines.
+- The Contract Labour Act regulates the employment of contract workers, including migrants.
+- The Unorganised Workers' Social Security Act provides a framework for social security 
+  benefits.
+- The Building and Other Construction Workers Act provides benefits for construction workers.
+
+How to access welfare services:
+- Register on the e-Shram portal (eshram.gov.in) to get a UAN card.
+- Link Aadhaar with bank account, mobile number, and ration card.
+- Visit Common Service Centres (CSCs) for assistance with registration and documentation.
+- Call toll-free helplines: 14434 (e-Shram), 1967 (PDS), 14400 (Labour).
+- Download the Mera Ration app for locating nearby FPS shops.
+- Use the e-Shram mobile app for accessing welfare schemes.
+
+Grievance redressal:
+- File complaints through the e-Shram portal.
+- Approach the District Labour Officer in the area where you are working.
+- Contact the State Labour Commissioner.
+- Call the national labour helpline 14400.
+- Use the Central Government's PG Portal (pgportal.gov.in) for grievances.

@@ -1,0 +1,29 @@
+TITLE: Payment of Wages Act, 1936
+DEPARTMENT: Ministry of Labour and Employment, Government of India
+LAST_UPDATED: 2025-02-15
+---
+The Payment of Wages Act, 1936 ensures timely payment of wages to workers and prohibits arbitrary deductions. It applies to all industrial establishments, shops, and establishments employing persons whose wages do not exceed Rs 24,000 per month (as amended).
+
+KEY PROVISIONS:
+- Definition of wages: All remuneration capable of being expressed in monetary terms paid to a person for employment or work done. This includes basic pay, dearness allowance, and other cash payments.
+- Payment period: Wages must be paid on or before the 7th day of the month following the month for which wages are payable. For establishments with fewer than 1000 workers, payment must be made before the 10th day.
+- Mode of payment: All wages shall be paid in currency or by cheque or by electronic transfer to the bank account of the worker. Cash payment is allowed only if the worker gives written consent.
+- Deductions from wages: Deductions are allowed only for absence from duty (with employer's consent), house rent, recovery of advances, fines, etc. Total deductions cannot exceed 50% of the wages.
+- Fines: Fines can only be imposed after giving the worker an opportunity to show cause. Fines must not exceed 3% of the wages. Fines cannot be imposed on children employed in factories.
+- Advances: Employer may advance wages not exceeding 75 days' wages. Recovery shall be in installments not exceeding 25% of wages per month.
+- Working days: An employer shall fix the working days and working hours for the establishment and display a notice.
+
+MIGRANT WORKERS RIGHTS:
+- Migrant workers are entitled to same wage protections as local workers.
+- Employers cannot deduct wages because of the worker's native state or place of origin.
+- Interstate migrant workers have additional protections under the Interstate Migrant Workmen Act, 1979.
+- Minimum wages apply equally to migrant workers and local workers.
+
+COMPLAINTS AND ENFORCEMENT:
+- Worker can file a complaint with the Inspector-cum-Facilitator if wages are not paid on time.
+- Complaint must be filed within 6 months from the date wages were payable.
+- Penalty for non-payment: Imprisonment up to 3 months or fine up to Rs 1,000 or both.
+- Repeat offence: Imprisonment up to 6 months.
+
+HELPLINE: Toll-free number 14434
+WEBSITE: labour.gov.in

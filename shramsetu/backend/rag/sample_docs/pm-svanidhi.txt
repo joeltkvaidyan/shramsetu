@@ -1,0 +1,38 @@
+TITLE: PM Street Vendor's AtmaNirbhar Nidhi (PM SVANidhi) — Credit Support for Street Vendors
+DEPARTMENT: Ministry of Housing and Urban Affairs, Government of India
+LAST_UPDATED: 2025-05-01
+---
+PM SVANidhi is a central sector scheme launched on June 1, 2020, to provide affordable working 
+capital credit to street vendors who have been adversely affected by COVID-19 and other economic 
+disruptions. Many migrant workers who become street vendors in cities benefit from this scheme.
+
+Eligibility:
+- Street vendors, hawkers, and footpath vendors who are selling goods from fixed or mobile 
+  structures in urban areas.
+- Vendors who possess a Certificate of Registration/Identity Card issued by the Urban Local 
+  Body (ULB) or Town Vending Committee (TVC).
+- Both existing vendors and new vendors who have been vending since before March 24, 2020.
+
+Loan details:
+- First loan: Up to Rs 10,000 as working capital loan, repayable within 12 months.
+- Second loan: Up to Rs 20,000, repayable within 12 months, available after repaying the 
+  first loan on time.
+- Third loan: Up to Rs 50,000, repayable within 12 months, available after repaying the 
+  second loan on time.
+- Subsidy: 7% per annum interest subsidy is credited directly to the vendor's bank account 
+  after repayment of the loan.
+
+Digital transactions incentive:
+- Vendors who make digital payments through UPI/digital modes during the loan period receive 
+  up to Rs 100 per month as cashback, capped at Rs 1,200 per year.
+
+How to apply:
+- Visit the PM SVANidhi portal: https://pmsvanidhi.mohua.gov.in
+- Apply online with Aadhaar card, bank account details, and ULB/TVC registration certificate.
+- Alternatively, apply through Common Service Centres (CSCs) or bank branches.
+- The loan is processed through banks, NBFCs, and MFIs partnered with the scheme.
+
+Registration for street vendors:
+- To get a ULB/TVC certificate, approach the local Urban Local Body or Town Vending Committee.
+- Provide proof of vending (self-declaration or photographs), Aadhaar card, and address proof.
+- The certificate is issued free of cost.

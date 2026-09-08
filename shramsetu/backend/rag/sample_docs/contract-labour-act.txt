@@ -1,0 +1,37 @@
+TITLE: Contract Labour (Regulation and Abolition) Act, 1970 — Protections for Contract Workers
+DEPARTMENT: Ministry of Labour and Employment, Government of India
+LAST_UPDATED: 2024-12-10
+---
+The Contract Labour Act regulates the employment of contract labour and provides protections 
+to workers hired through contractors. Many migrant workers are employed as contract labourers 
+in factories, construction sites, and other establishments.
+
+Applicability:
+- Applies to every establishment where 10 or more contract labourers are employed (or have 
+  been employed on any day in the preceding 12 months).
+- Applies to every contractor who employs 10 or more contract labourers.
+- Does not apply to workers in ports, docks, or certain specified establishments.
+
+Key protections:
+- Registration: The principal employer must register the establishment with the Labour 
+  Commissioner. The contractor must obtain a licence.
+- Wages: Contract workers must be paid at least the minimum wages applicable in the state. 
+  The principal employer is jointly liable for wage payments if the contractor fails to pay.
+- Working conditions: Adequate rest rooms, drinking water, toilets, and first-aid facilities 
+  must be provided at the workplace.
+- Equal treatment: Contract workers should not be treated differently from regular employees 
+  doing similar work in terms of wages and working conditions.
+- No exploitation: The contractor cannot charge any fee from the worker for providing 
+  employment. The worker's wages must be paid directly or through bank transfer.
+
+Rights of contract workers:
+- Right to receive wages on time (within the wage period).
+- Right to work in safe conditions with protective clothing and safety equipment.
+- Right to approach the Labour Commissioner if rights are violated.
+- Right to be registered under EPF/ESI if applicable.
+
+How to file a complaint:
+- Approach the Inspector-cum-Facilitator of the area where the establishment is located.
+- File a written complaint with details of the violation.
+- The inspector can impose penalties on the contractor and/or principal employer.
+- Call the labour helpline 14400 for guidance.

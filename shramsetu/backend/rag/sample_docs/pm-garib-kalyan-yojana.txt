@@ -1,0 +1,34 @@
+TITLE: Pradhan Mantri Garib Kalyan Yojana (PMGKY) — Food Security for Migrant Workers
+DEPARTMENT: Ministry of Finance / Ministry of Consumer Affairs, Government of India
+LAST_UPDATED: 2025-03-15
+---
+The Pradhan Mantri Garib Kalyan Yojana was launched to provide food security to migrant workers 
+and other vulnerable populations, especially during economic disruptions. It operates through the 
+public distribution system (PDS) and provides free foodgrains to those in need.
+
+Key provisions for migrant workers:
+- Free foodgrains: 5 kg of wheat per person per month and 1 kg of chana (chickpea) per person 
+  per month, over and above the regular NFSA entitlement.
+- Coverage: All migrants who are not covered under NFSA or state schemes (including those without 
+  a ration card) are eligible through the "One Nation One Ration Card" system.
+- Duration: Extended periodically by the government; currently operational through March 2025 
+  with possible extensions.
+
+How migrant workers benefit:
+- Migrant workers who do not have a ration card can still access foodgrains at any FPS using 
+  their Aadhaar card, through the ONORC facility.
+- Those with ration cards from other states can draw their entitled quantity at any FPS in the 
+  state where they are currently working.
+- The additional free foodgrains under PMGKY are available to all NFSA beneficiaries regardless 
+  of their location.
+
+Registration requirements:
+- Aadhaar card linked to a bank account and mobile number.
+- Ration card (if available) from the home state.
+- If no ration card: visit any FPS with Aadhaar and register through the ePoS device.
+
+Grievance redressal:
+- Call the toll-free PDS helpline 1967.
+- File complaints on the state Food and Civil Supplies portal.
+- Use the Mera Ration app (available on Google Play Store) to locate nearby FPS shops and 
+  check entitlements.

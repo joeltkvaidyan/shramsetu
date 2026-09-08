@@ -1,0 +1,24 @@
+TITLE: Inter-State Migrant Workmen (Regulation of Employment and Conditions of Service) Act
+DEPARTMENT: Ministry of Labour and Employment, Government of India
+LAST_UPDATED: 2024-08-20
+---
+The Inter-State Migrant Workmen Act, 1979 (now largely subsumed into the Occupational Safety, Health
+and Working Conditions Code, 2020) protects workers who are recruited in one state to work in an
+establishment in another state, typically through a contractor.
+
+Key protections for inter-state migrant workers:
+- The contractor recruiting a worker across state lines must be licensed by the government.
+- Workers must be issued a passbook containing details of their identity, wage rate, and employer.
+- Equal wages must be paid to inter-state migrant workers as to other workers doing the same or similar
+  work in that establishment; wages cannot be lower merely because the worker is a migrant.
+- Displacement allowance equal to 50% of monthly wages (or Rs 75, whichever is higher, under the older
+  Act) must be paid at the time of recruitment.
+- Journey allowance (to and from the home state) must be paid by the employer or contractor.
+- Suitable residential accommodation, free medical facilities, and protective clothing must be provided
+  during the period of employment.
+- In case of injury or death during employment, the worker or their family is entitled to compensation
+  under applicable labour laws.
+
+Where to complain: A worker who is denied these protections can file a complaint with the Labour
+Commissioner's office of the state where they are working, or use the Government/NGO complaint portal
+within ShramSetu once available.

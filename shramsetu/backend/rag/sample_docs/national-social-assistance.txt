@@ -1,0 +1,47 @@
+TITLE: National Social Assistance Programme (NSAP)
+DEPARTMENT: Ministry of Rural Development, Government of India
+LAST_UPDATED: 2025-02-15
+---
+The National Social Assistance Programme (NSAP) is a Centrally Sponsored Scheme providing social assistance to poor households in the case of old age, death of the breadwinner, and maternity. It is a flagship programme of the Ministry of Rural Development.
+
+COMPONENTS:
+1. Indira Gandhi National Old Age Pension Scheme (IGNOAPS):
+   - Pension: Rs 200-500/month depending on age (60-79 years: Rs 200, 80+ years: Rs 500).
+   - Eligibility: BPL families, aged 60 years or above.
+   - Central share: 100% of the pension amount.
+
+2. Indira Gandhi National Widow Pension Scheme (IGNWPS):
+   - Pension: Rs 300-500/month (40-79 years: Rs 300, 80+ years: Rs 500).
+   - Eligibility: BPL families, widow aged 40 years or above.
+   - Central share: 100% of the pension amount.
+
+3. Indira Gandhi National Disability Pension Scheme (IGNDPS):
+   - Pension: Rs 300-500/month (18-79 years: Rs 300, 80+ years: Rs 500).
+   - Eligibility: BPL families, persons with 80% or more disability aged 18 years or above.
+   - Central share: 100% of the pension amount.
+
+4. National Family Benefit Scheme (NFBS):
+   - Benefit: Rs 20,000 one-time grant.
+   - Eligibility: BPL families where the breadwinner (aged 18-59 years) dies.
+   - The breadwinner must be the primary earner in the household.
+
+5. Annapurna Scheme:
+   - Benefit: 10 kg of food grains per month free of cost.
+   - Eligibility: Senior citizens not covered under IGNOAPS.
+
+MIGRANT WORKERS:
+- Migrant workers from BPL families are eligible for NSAP benefits regardless of where they are living.
+- They can apply for benefits at the local Panchayat or municipal body.
+- The benefits are credited to the bank account, so they are portable.
+- Old age pension and widow pension are available to migrant workers who meet the eligibility criteria.
+- Disability pension is available to migrant workers with disabilities.
+
+APPLICATION PROCESS:
+1. Visit the local Panchayat or municipal body.
+2. Fill the application form (available in local language).
+3. Submit required documents (Aadhaar, BPL certificate, age proof, bank details).
+4. The application is verified and approved by the Panchayat.
+5. Benefits are credited to the bank account.
+
+HELPLINE: 1800-180-5678 (toll-free)
+WEBSITE: nsap.nic.in | rural.nic.in

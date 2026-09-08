@@ -1,0 +1,52 @@
+TITLE: Pradhan Mantri Awas Yojana (PMAY) — Housing for All
+DEPARTMENT: Ministry of Housing and Urban Affairs / Ministry of Rural Development, Government of India
+LAST_UPDATED: 2025-04-01
+---
+Pradhan Mantri Awas Yojana (PMAY) — Housing for All
+
+PMAY aims to provide pucca houses with basic amenities to all eligible families by 2024 (extended). It has two components: PMAY-Urban and PMAY-Gramin.
+
+Key Features:
+- Financial assistance for constructing or buying a house
+- Interest subsidy on home loans (Credit Linked Subsidy Scheme)
+- Direct Benefit Transfer to beneficiary's bank account
+- Houses with basic amenities: water supply, sewerage, electricity
+
+PMAY-Gramin (Rural):
+- Rs 1.20 lakh assistance for plain areas
+- Rs 1.30 lakh assistance for hilly/difficult areas
+- House size: minimum 25 sq metres built-up area
+- Material assistance: cement, steel, bricks provided
+
+PMAY-Urban:
+- Interest subsidy: 3-6.5% on home loans up to Rs 6 lakh
+- Credit Linked Subsidy Scheme for EWS/LIG/MIG
+- Construction support and beneficiary-led construction
+
+Eligibility:
+- Families without a pucca house (EWS: income up to Rs 3 lakh, LIG: Rs 3-6 lakh, MIG-I: Rs 6-12 lakh, MIG-II: Rs 12-18 lakh)
+- BPL families identified by SECC data
+- Migrant workers registered on e-Shram portal
+- Women heads of household (priority)
+- SC/ST, disabled persons, minorities (priority)
+
+How to Apply:
+1. Visit https://pmaymis.gov.in (Urban) or https://aajeevika.gov.in (Rural)
+2. Or visit nearest CSC with required documents
+3. Fill application form with family and income details
+4. Submit Aadhaar, income certificate, bank details
+5. Wait for BPL verification and approval
+6. Once approved, construction can begin
+
+Documents Required:
+- Aadhaar card of all family members
+- Income certificate from Tehsildar/SDM
+- Bank account details
+- BPL certificate or ration card
+- Land ownership documents (if own land)
+- Affidavit that family does not own a pucca house
+
+Helpline:
+- PMAY-G: 1800-11-6446
+- PMAY-U: 011-23061867
+- Website: https://pmaymis.gov.in

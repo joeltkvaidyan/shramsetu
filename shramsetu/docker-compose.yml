@@ -1,0 +1,91 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: shramsetu
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-shramsetu}
+      POSTGRES_DB: shramsetu
+    volumes:
+      - shramsetu_db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shramsetu"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ENV: ${ENV:-production}
+      DEBUG: ${DEBUG:-false}
+      DATABASE_URL: postgresql://shramsetu:${POSTGRES_PASSWORD:-shramsetu}@db:5432/shramsetu
+      DB_POOL_SIZE: ${DB_POOL_SIZE:-10}
+      DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-20}
+      # Runs `alembic upgrade head` on container start — the real
+      # production path (see backend/entrypoint.sh), instead of relying on
+      # the dev-convenience create-tables-if-missing fallback.
+      RUN_MIGRATIONS_ON_START: "true"
+
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?Set a real JWT_SECRET_KEY in your .env before deploying}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GROQ_MODEL: ${GROQ_MODEL:-llama-3.3-70b-versatile}
+      GROQ_STT_MODEL: ${GROQ_STT_MODEL:-whisper-large-v3-turbo}
+
+      # File storage: local (default, uses the named volume below) or s3
+      # (recommended for production — see backend/.env.example).
+      STORAGE_BACKEND: ${STORAGE_BACKEND:-local}
+      UPLOAD_DIR: /app/uploads
+      S3_BUCKET_NAME: ${S3_BUCKET_NAME:-}
+      S3_REGION: ${S3_REGION:-auto}
+      S3_ENDPOINT_URL: ${S3_ENDPOINT_URL:-}
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-}
+
+      FAISS_INDEX_DIR: /app/rag/index
+      RAG_SOURCE_DOCS_DIR: /app/rag/sample_docs
+
+      # Grievance -> authority email forwarding (see backend/.env.example
+      # for the free ConsoleEmailProvider dev-mode fallback if left empty).
+      NOTIFY_AUTHORITIES_ENABLED: ${NOTIFY_AUTHORITIES_ENABLED:-true}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-noreply@shramsetu.local}
+      LABOUR_DEPARTMENT_EMAIL: ${LABOUR_DEPARTMENT_EMAIL:-labour-dept@example.gov.in}
+      POLICE_DEPARTMENT_EMAIL: ${POLICE_DEPARTMENT_EMAIL:-police-cell@example.gov.in}
+
+      OTP_RESEND_COOLDOWN_SECONDS: ${OTP_RESEND_COOLDOWN_SECONDS:-30}
+      CORS_ORIGINS: ${CORS_ORIGINS:-'["http://localhost:5173","http://localhost:8080"]'}
+    volumes:
+      - shramsetu_uploads:/app/uploads
+      - shramsetu_rag_index:/app/rag/index
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "8080:80"
+
+volumes:
+  shramsetu_db_data:
+  shramsetu_uploads:
+  shramsetu_rag_index:

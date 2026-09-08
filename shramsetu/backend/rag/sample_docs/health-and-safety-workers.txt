@@ -1,0 +1,42 @@
+TITLE: Health and Safety of Workers at Workplace
+DEPARTMENT: Ministry of Labour and Employment, Government of India
+LAST_UPDATED: 2025-02-15
+---
+Health and safety of workers is a fundamental right under Indian law. The Occupational Safety, Health and Working Conditions Code, 2020 (OSH Code) consolidates and amends the laws regulating the occupational safety, health, and working conditions of persons employed in establishments.
+
+KEY PROVISIONS:
+- Safe working conditions: Every employer shall ensure that the workplace is free from hazards and provides safe working conditions.
+- Risk assessment: Employers must conduct regular risk assessments and take measures to eliminate or reduce risks.
+- Personal Protective Equipment (PPE): Employers must provide PPE at their own cost to workers exposed to hazards.
+- Clean drinking water: Adequate supply of clean drinking water must be provided at the workplace.
+- First aid: First aid facilities must be available at the workplace.
+- Welfare facilities: Adequate toilet facilities, restrooms, and washrooms must be provided.
+- Ventilation and temperature: Workplaces must have adequate ventilation and maintain comfortable temperature.
+- Lighting: Adequate lighting must be provided at all workplaces.
+- Dust and fume prevention: Adequate measures must be taken to prevent inhalation of dust, fumes, and toxic substances.
+- Noise control: Employers must take measures to reduce noise levels at the workplace.
+- Emergency preparedness: Emergency plans and fire safety measures must be in place.
+
+HEALTH PROVISIONS:
+- Health examination: Workers engaged in hazardous occupations must undergo periodic health examinations.
+- Medical facilities: Factories with 50+ workers must have an dispensary with a qualified doctor.
+- Sickness benefit: Workers covered under ESIC are entitled to sickness benefit (70% of daily wages) for up to 91 days in two consecutive benefit periods.
+- Disablement benefit: Workers who suffer employment injury are entitled to disablement benefit.
+- Maternity benefit: Women workers are entitled to maternity benefit under the Maternity Benefit Act.
+- Dependent benefit: Dependents of workers who die due to employment injury are entitled to dependent benefit.
+
+MIGRANT WORKERS:
+- Migrant workers are entitled to the same health and safety protections as local workers.
+- Employers of migrant workers must provide safety training in a language the worker understands.
+- Workers engaged in construction, mining, and brick kilns must be given safety equipment.
+- Health facilities must be accessible and available in the worker's language.
+- Emergency health services must be available near the workplace.
+
+INDUSTRY-SPECIFIC SAFETY:
+- Construction: Safety nets, helmets, harnesses, and barriers must be provided.
+- Mining: Gas detection equipment, ventilation, and rescue facilities are mandatory.
+- Factories: Machine guarding, fire safety, and chemical handling protocols.
+- Agriculture: Protection from pesticides and safe handling of farm equipment.
+
+HELPLINE: 14434 (e-Shram) | Emergency 108 (ambulance)
+WEBSITE: labour.gov.in | eshram.gov.in

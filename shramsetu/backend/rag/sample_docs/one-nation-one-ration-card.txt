@@ -1,0 +1,32 @@
+TITLE: One Nation One Ration Card (ONORC) — Portable Food Security
+DEPARTMENT: Ministry of Consumer Affairs, Food and Public Distribution, Government of India
+LAST_UPDATED: 2025-06-01
+---
+The One Nation One Ration Card scheme ensures that migrant workers and their families can access 
+foodgrains from any Fair Price Shop (FPS) across India, regardless of the state they are currently 
+living in. This is critical for migrant workers who move between states for work.
+
+Eligibility: Any household that is a beneficiary under the National Food Security Act (NFSA), 
+including Antyodaya Anna Yojana (AAY) and Priority Households (PHH), is eligible. The ration 
+card must be linked with Aadhaar of all family members.
+
+How it works:
+- The ration card is linked to Aadhaar (seeding is mandatory).
+- When a worker migrates to another state, they can visit any FPS in that state and draw their 
+  entitled foodgrains using Aadhaar authentication (fingerprint or iris scan).
+- The entitlement follows the worker: 5 kg of foodgrain per person per month under NFSA, and 
+  35 kg per AAY family per month.
+- The subsidy rate is the same across India: Rs 3/kg for rice, Rs 2/kg for wheat under NFSA.
+
+How to link Aadhaar with ration card:
+- Visit the local FPS or the state's Food and Civil Supplies department website.
+- Many states allow online seeding through the state PDS portal or via Aadhaar Seeding Kiosk 
+  at Common Service Centres (CSCs).
+- Check status at the national portal: https://rcgs.nic.in
+
+Helpline: Call 1967 (toll-free) for PDS-related grievances, or 14434 for e-Shram issues 
+related to ration card portability.
+
+Important for migrants: If your ration card is from your home state but you are working in 
+another state, you can still draw rations in the work state. However, the quantity drawn in the 
+work state will be adjusted against your home state entitlement.
