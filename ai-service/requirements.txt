@@ -1,0 +1,41 @@
+# ShramSetu AI service — runtime dependencies (Phase 4 cleanup).
+# Every package below is grep-verified against actual imports in app/, main.py,
+# rag/ and the vendored IndicProcessor. Test-only deps live in requirements-dev.txt.
+# Removed in the Phase 4 cleanup (FastAPI/SQLite-era or unused): sqlmodel,
+# psycopg2-binary, alembic, python-jose, passlib, bcrypt, qrcode, Pillow, pypdf,
+# python-dotenv, httpx, gTTS, python-magic, aiofiles, websockets, email-validator,
+# boto3, coqui-tts, torchaudio, pydub, espeakng-loader, phonemizer, the bare
+# `langchain` meta-package and a direct `groq` pin (langchain-groq pulls it in).
+# Auth now lives entirely in the Node server; TTS is Sarvam/Google over REST.
+
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+pydantic==2.9.2
+pydantic-settings==2.5.2
+# FastAPI needs multipart parsing for the /transcribe file upload.
+python-multipart==0.0.9
+# REST client for Google/Sarvam translation and TTS providers.
+requests==2.34.2
+
+# --- RAG stack ---
+langchain-core==1.6.5
+langchain-community==0.3.5
+langchain-groq==0.2.1
+langchain-huggingface==0.1.2
+faiss-cpu==1.11.0.post1
+sentence-transformers==3.2.1
+transformers==4.57.6
+torch==2.14.0
+numpy==1.26.4
+tqdm==4.70.0
+
+# --- Local STT (faster-whisper) ---
+faster-whisper==1.2.1
+
+# --- Indic query translation preprocessing (vendored IndicProcessor) ---
+sacremoses==0.2.0
+indic-nlp-library==0.92
+sentencepiece==0.2.2
+
+# Optional: uncomment when REDIS_URL is set for multi-instance rate limiting
+# redis>=5.0

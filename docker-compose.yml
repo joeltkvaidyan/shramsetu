@@ -1,0 +1,30 @@
+# ShramSetu — MongoDB via Docker (optional development setup).
+#
+# Usage (after installing Docker Desktop):
+#   docker compose up -d mongo
+# then in server/.env set:
+#   MONGODB_URI=mongodb://127.0.0.1:27017/shramsetu
+# and restart the Node server. The demo seeder is idempotent — it fills
+# only what's missing, so data persists across restarts.
+#
+# Development needs only the database; the Node server, Python AI service
+# and frontend run natively (see README "Run it"). Add them here later if
+# you want a fully containerised stack.
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: shramsetu-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mongo_data:

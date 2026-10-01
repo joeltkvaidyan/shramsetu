@@ -1,0 +1,56 @@
+TITLE: Mahatma Gandhi National Rural Employment Guarantee Act (MGNREGA)
+DEPARTMENT: Ministry of Rural Development, Government of India
+LAST_UPDATED: 2025-03-01
+SOURCE_URL: https://nrega.nic.in
+LAST_VERIFIED: needs review
+STATUS: current
+---
+MGNREGA is a flagship programme of the Government of India that provides legal guarantee for 100 days of wage employment in a financial year to every rural household whose adult members volunteer to do unskilled manual work. It is the world's largest public works programme.
+
+KEY PROVISIONS:
+1. Legal Entitlement: Every rural household has a legal right to 100 days of employment per year.
+2. Work Within 15 Days: Employment must be provided within 15 days of application.
+3. Unemployment Allowance: If employment is not provided within 15 days, the applicant is entitled to unemployment allowance.
+4. Minimum Wages: Wages are paid at the state's minimum wage rate for agricultural labourers.
+5. Payment Through Bank: Wages are paid through bank/post office accounts, not in cash.
+6. Work Demand: Any member of a rural household can demand work by submitting a written application to the Gram Panchayat.
+7. Work Within 5 km: Work must be provided within 5 km of the applicant's residence. If not, 10% additional wages are paid.
+8. Women Participation: At least one-third of beneficiaries must be women. Women are paid equal wages.
+9. Time Limit: Work must be completed within the specified time limit. If not, the worker is entitled to compensation.
+
+ELIGIBILITY:
+- Any adult member of a rural household who volunteers for unskilled manual work
+- Job card must be registered with the Gram Panchayat
+- Aadhaar-linked bank account for wage payment
+
+WORK TYPES:
+- Water conservation and harvesting
+- Drought proofing (including afforestation)
+- Land development
+- Flood control and protection
+- Rural connectivity (roads, paths)
+- Individual beneficiary schemes
+- Any other work notified by the state government
+
+MIGRANT WORKERS:
+- MGNREGA job card is linked to the worker's native village
+- Migrant workers can use their job card in their home state
+- Some states have extended MGNREGA to urban areas (AMRUT, Smart Cities)
+- If a migrant worker returns to their native village, they can resume MGNREGA work
+- MGNREGA wages are credited to the bank account, making them portable
+
+WAGE PAYMENT:
+- Wages are credited to the bank/post office account on a weekly basis
+- Maximum delay in wage payment: 15 days from completion of work
+- If delayed, compensation is paid at 0.05% per day of delay
+- In some states, minimum wage for agricultural labourers is higher than MGNREGA wage rate
+
+GRIEVANCE REDRESSAL:
+- Gram Panchayat-level complaint
+- Block Development Officer
+- District Programme Coordinator
+- State-level monitoring committee
+- National-level monitoring by MGNREGA Commissioner
+
+HELPLINE: 1800-180-5678 (toll-free)
+WEBSITE: nrega.nic.in | mgnrega.nic.in

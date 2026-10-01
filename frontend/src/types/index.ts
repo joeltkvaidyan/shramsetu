@@ -1,0 +1,117 @@
+export interface Worker {
+  id: number;
+  worker_id: string;
+  full_name: string;
+  mobile_number: string;
+  email?: string | null;
+  role: string;
+  profile_photo_path?: string | null;
+  preferred_language: string;
+  qr_code?: string | null;
+}
+
+export interface DocumentItem {
+  id: number;
+  display_name: string;
+  original_filename: string;
+  content_type: string;
+  size_bytes: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ChatAnswerSource {
+  title: string | null;
+  department: string | null;
+  authority?: string;
+  last_updated?: string | null;
+  last_verified?: string;
+  version?: string;
+  source_url?: string;
+  source_file?: string;
+  similarity?: number;
+}
+
+export interface ChatAnswer {
+  answer: string;
+  simple_explanation: string;
+  source_document: string | null;
+  government_department: string | null;
+  confidence_score: number;
+  confidence_basis?: "retrieval_similarity";
+  last_updated_date: string | null;
+  grounded: boolean;
+  system_error?: boolean;
+  sources?: ChatAnswerSource[];
+}
+
+export interface ChatHistoryItem {
+  role: "user" | "assistant";
+  content: string;
+  language: string;
+  created_at: string;
+  meta: ChatAnswer | null;
+}
+
+export type GrievanceCategory =
+  | "unpaid_wages"
+  | "workplace_safety"
+  | "harassment_abuse"
+  | "illegal_termination"
+  | "document_issue"
+  | "employer_dispute"
+  | "insurance_claim"
+  | "accommodation"
+  | "other";
+
+export type GrievanceStatus = "submitted" | "under_review" | "resolved" | "rejected" | "withdrawn";
+
+export interface Grievance {
+  id: number;
+  complaint_number: string;
+  category: GrievanceCategory;
+  subject: string;
+  description: string;
+  status: GrievanceStatus;
+  priority?: string;
+  escalated?: boolean;
+  sla_deadline?: string | null;
+  employer_name?: string | null;
+  incident_location?: string | null;
+  incident_date?: string | null;
+  created_at: string;
+  updated_at: string;
+  resolved_at?: string | null;
+}
+
+export interface GrievanceAttachment {
+  id: number;
+  original_filename: string;
+  content_type: string;
+  size_bytes: number;
+  created_at: string;
+}
+
+export interface GrievanceStatusLogItem {
+  status: string;
+  note?: string | null;
+  changed_by: string;
+  created_at: string;
+}
+
+export interface GrievanceComment {
+  id: number;
+  author_name: string;
+  author_role: string;
+  content: string;
+  created_at: string;
+}
+
+export interface GrievanceDetail extends Grievance {
+  attachments: GrievanceAttachment[];
+  timeline: GrievanceStatusLogItem[];
+  comments?: GrievanceComment[];
+  worker_rating?: number | null;
+  worker_feedback?: string | null;
+  feedback_at?: string | null;
+}

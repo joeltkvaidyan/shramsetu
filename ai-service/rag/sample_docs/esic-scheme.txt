@@ -1,0 +1,41 @@
+TITLE: Employees' State Insurance Corporation (ESIC) — Social Security for Workers
+DEPARTMENT: Ministry of Labour and Employment, Government of India
+LAST_UPDATED: 2025-02-20
+SOURCE_URL: needs review
+LAST_VERIFIED: needs review
+STATUS: current
+---
+The Employees' State Insurance (ESI) scheme provides comprehensive social security benefits to 
+workers in the organized sector, including medical, sickness, maternity, disability, and 
+dependents' benefits. It is managed by the Employees' State Insurance Corporation (ESIC).
+
+Eligibility:
+- Any employee working in a factory or establishment with 10 or more employees, earning up to 
+  Rs 21,000 per month (Rs 25,000 for persons with disabilities).
+- Both employer and employee contribute: employer contributes 3.25% and employee contributes 
+  0.75% of wages.
+- Applicable across India in all states and union territories.
+
+Benefits:
+- Medical benefit: Free medical treatment for the insured person and their family at ESI 
+  hospitals and dispensaries. This includes outpatient treatment, hospitalization, surgery, 
+  and maternity care.
+- Sickness benefit: 70% of average daily wages for up to 91 days in two consecutive benefit 
+  periods, if the insured person is certified medically unfit.
+- Maternity benefit: 100% of average daily wages for 26 weeks (extendable to 30 weeks for 
+  certain categories) for confinement/miscarriage.
+- Disablement benefit: 70% to 90% of average daily wages depending on the nature and extent 
+  of disability, for both temporary and permanent disability.
+- Dependants' benefit: 70% of average daily wages to dependents (spouse, children, dependent 
+  parents) in case of death due to employment injury.
+- confinement expense: Rs 7,000 or actual expense, whichever is less.
+- Vocational rehabilitation: Training and financial assistance for disabled workers.
+
+How to register:
+- The employer is responsible for registering employees under ESI.
+- Employees can check their ESI status using their insurance number at www.esic.gov.in.
+- ESI card (Pehchan card) can be downloaded from the ESIC portal.
+
+Important for migrant workers: If a worker moves to a new state, their ESI benefits continue 
+as long as they are employed under an ESI-covered establishment. The ESI number is portable 
+across India.

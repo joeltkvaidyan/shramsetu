@@ -1,0 +1,51 @@
+TITLE: Building and Other Construction Workers' Welfare Cess and Welfare Fund
+DEPARTMENT: Ministry of Labour and Employment, Government of India
+LAST_UPDATED: 2025-02-01
+SOURCE_URL: https://www.pib.gov.in/PressReleasePage.aspx?PRID=2192463
+LAST_VERIFIED: 2026-10-01
+STATUS: superseded
+---
+The Building and Other Construction Workers' Welfare Cess is levied on the cost of construction 
+to fund the welfare of construction workers. This cess is collected from construction employers 
+and deposited into the Building and Other Construction Workers' Welfare Fund, which is used to 
+finance various welfare schemes for registered construction workers.
+
+Cess details:
+- Rate: 1% to 2% of the construction cost (varies by state).
+- Applicable to all construction work, including building, road, bridge, dam, and other 
+  infrastructure projects.
+- Collected by the state government from the contractor or principal employer.
+- Deposited into the state BOCW Welfare Board fund.
+
+How the fund is used:
+- Medical treatment and health insurance for registered construction workers.
+- Maternity benefits for women construction workers.
+- Education assistance for children of construction workers.
+- Pension after age 60.
+- Financial assistance for housing.
+- Accident compensation and death benefits.
+- Skill development and vocational training.
+- Tool kits and equipment for workers.
+
+Registration for benefits:
+- A construction worker who has worked at least 90 days in the preceding 12 months can register 
+  with the state BOCW Welfare Board.
+- Registration requires: proof of construction work, age proof, address proof, and bank account 
+  details.
+- Registration is usually free or has a nominal fee.
+- After registration, the worker receives a BOCW card.
+- Registration must be renewed annually as per state rules.
+
+Important for migrant workers:
+- A worker can register with the BOCW Welfare Board of the state where they are currently working, 
+  regardless of their home state.
+- The registration is portable; if the worker moves to another state, they can re-register with 
+  the new state's board.
+- Benefits are available at the state where the worker is registered.
+
+How to check available benefits:
+- Visit the state BOCW Welfare Board website.
+- Approach the BOCW office in the district where the worker is registered.
+- The worker's BOCW card can be used to avail benefits at empaneled hospitals and institutions.
+
+REPEALED — HISTORICAL INFORMATION ONLY: The Building and Other Construction Workers' Welfare Cess Act, 1996 was repealed when the four Labour Codes came into force on 21 November 2025, with construction-worker welfare continuing under the Occupational Safety, Health and Working Conditions Code, 2020. Everything above describes the cess as it stood before that date. See the "Construction Workers under the OSH Code, 2020" document. Source: PIB press release PRID 2192463.

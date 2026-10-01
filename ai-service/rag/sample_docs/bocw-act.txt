@@ -1,0 +1,33 @@
+TITLE: Building and Other Construction Workers (Regulation of Employment and Conditions of Service) Act
+DEPARTMENT: Ministry of Labour and Employment, Government of India
+LAST_UPDATED: 2024-11-15
+SOURCE_URL: https://www.pib.gov.in/PressReleasePage.aspx?PRID=2192463
+LAST_VERIFIED: 2026-10-01
+STATUS: superseded
+---
+The BOCW Act, 1996 protects the rights of construction workers, including migrant construction workers,
+across India. Every state runs a Building and Other Construction Workers' Welfare Board funded by a cess
+collected from construction employers.
+
+Registration: A construction worker who has worked at least 90 days in the preceding 12 months can
+register with the state BOCW Welfare Board using proof of construction work, age proof, and address proof.
+Registration is usually free or has a nominal fee, and must be renewed annually or as per state rules.
+
+Benefits available to registered construction workers:
+- Financial assistance for medical treatment for the worker and dependents.
+- Maternity benefit for women construction workers.
+- Financial assistance for the education of children.
+- Pension after the age of 60.
+- Financial assistance for tools required for construction work.
+- Assistance for house construction/purchase in some states.
+- Ex-gratia payment to the family in case of death or disability due to a construction accident.
+
+Employer obligations: Employers of establishments with 10 or more construction workers must be
+registered under the Act, must maintain safety measures at the worksite, and must pay the cess to the
+welfare board (1% of construction cost in most states).
+
+Migrant worker note: A worker who migrates to a different state for construction work can register
+with the welfare board of the state where they are currently working; the registration is not restricted
+to their home state.
+
+REPEALED — HISTORICAL INFORMATION ONLY: The Building and Other Construction Workers (Regulation of Employment and Conditions of Service) Act, 1996 was repealed when the Occupational Safety, Health and Working Conditions Code, 2020 came into force on 21 November 2025. Everything above describes the law as it stood before that date; construction-worker welfare boards and schemes continue under the OSH Code framework. See the "Construction Workers under the OSH Code, 2020" document. Source: PIB press release PRID 2192463.

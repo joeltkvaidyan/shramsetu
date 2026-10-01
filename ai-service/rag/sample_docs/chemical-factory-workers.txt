@@ -1,0 +1,62 @@
+TITLE: Rights and Safety of Chemical Factory Workers
+DEPARTMENT: Ministry of Labour and Employment / Ministry of Chemicals and Fertilizers, Government of India
+LAST_UPDATED: 2025-02-15
+SOURCE_URL: needs review
+LAST_VERIFIED: 2026-10-01
+STATUS: current
+---
+This document covers the rights, safety measures, and protections available to workers in chemical factories, pharmaceutical plants, and hazardous material handling facilities.
+
+KEY SAFETY MEASURES:
+1. Personal Protective Equipment (PPE):
+   - Respiratory protection (masks, respirators)
+   - Chemical-resistant gloves and clothing
+   - Safety goggles and face shields
+   - Safety boots and helmets
+   - All PPE provided free by employer
+
+2. Ventilation:
+   - Local exhaust ventilation for hazardous processes
+   - General dilution ventilation
+   - Regular monitoring of air quality
+
+3. Training:
+   - Safety induction training for all new workers
+   - Hazard communication training (Safety Data Sheets)
+   - Emergency response training
+   - First aid training
+
+4. Medical Surveillance:
+   - Pre-employment medical examination
+   - Periodic health check-ups (every 6-12 months)
+   - Biological monitoring for exposure to chemicals
+   - Record maintenance of health records
+
+WORKERS RIGHTS:
+1. Right to know about hazardous chemicals used in the workplace
+2. Right to receive safety training in a language they understand
+3. Right to refuse unsafe work
+4. Right to access medical records
+5. Right to compensation for occupational diseases
+6. Right to safe working conditions
+7. Right to form trade unions
+
+OCCUPATIONAL DISEASES:
+- Workers exposed to certain chemicals may develop occupational diseases
+- Diseases include: skin disorders, respiratory problems, neurological effects
+- Workers are entitled to compensation under the Code on Social Security, 2020 (which replaced the Employees' Compensation Act, 1923)
+- Employers must maintain records of workplace exposures
+
+MIGRANT CHEMICAL WORKERS:
+- Migrant workers must receive safety training in their native language
+- Employers cannot deny safety equipment because of the worker's origin
+- Workers must be informed about risks in a language they understand
+- Medical facilities must be accessible and available in their language
+
+COMPLAINTS:
+- Workers can file complaints with the Inspector-cum-Facilitator
+- Complaints can be filed anonymously
+- Penalties for non-compliance: Imprisonment up to 2 years or fine up to Rs 5 lakh
+
+HELPLINE: 14434 (e-Shram) | 1070 (Fertilizer helpline)
+WEBSITE: chemicals.gov.in | labour.gov.in

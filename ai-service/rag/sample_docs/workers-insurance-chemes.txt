@@ -1,0 +1,75 @@
+TITLE: Comprehensive Insurance and Pension Schemes for Workers in India
+DEPARTMENT: Ministry of Labour and Employment / Ministry of Finance, Government of India
+LAST_UPDATED: 2025-03-01
+SOURCE_URL: needs review
+LAST_VERIFIED: needs review
+STATUS: current
+---
+This document provides a comprehensive overview of all insurance and pension schemes available to workers in India, especially unorganised and migrant workers.
+
+LIFE INSURANCE SCHEMES:
+1. Pradhan Mantri Jeevan Jyoti Bima Yojana (PM-JJBY):
+   - Coverage: Rs 2 lakh
+   - Premium: Rs 436/year (auto-debited from bank account)
+   - Eligibility: 18-50 years, savings bank account
+   - Claim: Death benefit paid to nominee within 30 days
+
+2. Pradhan Mantri Suraksha Bima Yojana (PM-SBY):
+   - Coverage: Rs 2 lakh (death/total disability), Rs 1 lakh (partial disability)
+   - Premium: Rs 20/year (auto-debited)
+   - Eligibility: 10-70 years, savings bank account
+   - Claim: Accidental death or disability benefit
+
+3. Aam Aadmi Bima Yojana (AABY):
+   - Coverage: Rs 30,000 (natural death), Rs 75,000 (accidental death/total disability), Rs 37,500 (partial disability)
+   - Premium: Rs 200/year (shared: Rs 100 government, Rs 100 subscriber)
+   - Eligibility: 18-59 years, BPL families
+
+PENSION SCHEMES:
+1. Pradhan Mantri Shram Yogi Maan-Dhan (PM-SYM):
+   - Pension: Rs 3,000/month after age 60
+   - Contribution: Rs 55-200/month (age-based)
+   - Government matches the contribution
+   - Eligibility: Unorganised workers, monthly income up to Rs 15,000
+
+2. National Pension System (NPS):
+   - Market-linked pension with government contribution
+   - Minimum contribution: Rs 1,000/year
+   - Government contributes 50% (up to Rs 1,000) for unorganised workers
+   - Eligibility: 18-65 years
+
+3. Atal Pension Yojana (APY):
+   - Guaranteed pension: Rs 1,000-5,000/month after age 60
+   - Government co-contribution: 50% for eligible subscribers
+   - Eligibility: 18-40 years, bank account, not covered under statutory social security
+
+HEALTH INSURANCE:
+1. Ayushman Bharat (PM-JAY):
+   - Coverage: Rs 5 lakh per family per year for hospitalisation
+   - Eligibility: BPL families identified through SECC data
+   - 1,949 packages including surgery, medical, day care
+   - Cashless and paperless treatment at empanelled hospitals
+
+2. ESIC (Employees State Insurance Corporation):
+   - Medical benefit: Complete medical care for self and family
+   - Sickness benefit: 70% of daily wages for up to 91 days
+   - Maternity benefit: 100% of wages for 26 weeks
+   - Disablement benefit: Compensation for employment injury
+   - Dependent benefit: Pension to dependents of deceased worker
+   - Eligibility: Employees earning up to Rs 21,000/month
+
+MIGRANT WORKERS:
+- All schemes listed above are portable across states
+- Migrant workers can enroll from any location
+- Benefits are credited directly to bank accounts
+- e-Shram registration links workers to all available schemes
+- PM-SYM, PM-SBY, PM-JJBY are available regardless of location
+
+HOW TO ENROLL:
+- e-Shram portal: eshram.gov.in
+- Common Service Centres (CSCs)
+- Bank branches
+- Post offices
+
+HELPLINE: 14434 (e-Shram) | 1800-180-1551 (PM-SYM) | 1800-11-0001 (PM-JJBY)
+WEBSITE: eshram.gov.in | jansuraksha.gov.in | pmjay.gov.in

@@ -1,0 +1,37 @@
+TITLE: Code on Social Security, 2020 — Current Law on Social Security, Compensation and Maternity Benefit
+DEPARTMENT: Ministry of Labour and Employment, Government of India
+LAST_UPDATED: 2026-10-01
+AUTHORITY: Ministry of Labour and Employment, Government of India
+SOURCE_URL: https://www.pib.gov.in/PressReleasePage.aspx?PRID=2192463
+LAST_VERIFIED: 2026-10-01
+STATUS: current
+---
+The Code on Social Security, 2020 came into force on 21 November 2025 as one of the four Labour
+Codes and is now the central law on social security for all workers, including migrant and
+unorganised-sector workers. It consolidated several earlier social security laws — among them
+the Employees' Compensation Act, 1923, the Maternity Benefit Act, 1961 and the Unorganised
+Workers' Social Security Act, 2008 (the complete list of subsumed laws: needs review).
+(Source: PIB press release PRID 2192463; PIB Year End Review 2025, PRID 2209767.)
+
+Key protections that continue under the Code:
+- Maternity benefit: Women workers continue to be entitled to paid maternity leave — 26 weeks
+  for the first two children and 12 weeks thereafter — and dismissal on account of maternity
+  absence is prohibited. Because of the new uniform wage definition, the maternity benefit
+  amount is designed to be higher than before. (Source: PIB Year End Review 2025, PRID 2209767.)
+- Compensation for employment injury or death: If a worker suffers injury, disability or death
+  arising out of employment, the employer's liability to pay compensation continues under the
+  Code. Commute-related accidents are now treated as employment-related, making the employee
+  eligible for compensation. (Source: PIB Year End Review 2025, PRID 2209767.)
+- Social security for unorganised workers: Registration of unorganised workers (through the
+  e-Shram portal, eshram.gov.in) and access to welfare schemes continue under the Code's
+  framework for universal social security. The Code also extends coverage to gig workers and
+  platform workers.
+- The welfare schemes linked to e-Shram registration — accident insurance, life insurance,
+  pension schemes such as PM-SYM — continue as central sector schemes.
+
+How to use these rights:
+- For e-Shram registration and scheme linkage: register at eshram.gov.in or visit a Common
+  Service Centre (free of cost), or call the e-Shram helpline 14434.
+- For maternity benefit or compensation disputes: file a complaint with the officer designated
+  under the Code in your area, or approach the District Labour Office.
+- Migrant workers are entitled to these benefits regardless of their home state.

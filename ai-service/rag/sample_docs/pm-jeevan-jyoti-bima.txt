@@ -1,0 +1,41 @@
+TITLE: Pradhan Mantri Jeevan Jyoti Bima Yojana (PM-JJBY)
+DEPARTMENT: Department of Financial Services, Ministry of Finance, Government of India
+LAST_UPDATED: 2025-03-01
+SOURCE_URL: https://jansuraksha.gov.in
+LAST_VERIFIED: needs review
+STATUS: current
+---
+The Pradhan Mantri Jeevan Jyoti Bima Yojana (PM-JJBY) is a one-year term life insurance scheme renewable from year to year. It offers a life cover of Rs 2 lakh to the nominees at a nominal premium of Rs 436 per annum (approximately Rs 1.2 per day).
+
+KEY PROVISIONS:
+- Eligibility: Any individual aged 18-50 years having a savings bank account and who has given consent for auto-debit.
+- Premium: Rs 436 per annum (including service tax).
+- Coverage: Rs 2 lakh in case of death of the insured due to any reason.
+- Nomination: The amount is paid to the nominee(s) registered for the bank account.
+- Auto-debit: Premium is auto-debited from the savings bank account on or before the due date.
+- Renewal: The scheme is renewable on 31st May every year. If the premium is not paid by the due date, the coverage lapses.
+- Exit: Subscriber can exit the scheme at any time. If no claim has been filed, the premium for the current year is not refunded.
+- Multiple accounts: If a person has more than one savings bank account linked to the same Aadhaar, the cover will be available only in one bank account.
+
+MIGRANT WORKERS:
+- Migrant workers with a savings bank account in any bank can enroll in PM-JJBY.
+- They can enroll at any bank branch, not just the branch where they have an account.
+- Premium is auto-debited from the bank account, so they don't need to visit the bank annually.
+- The Rs 2 lakh benefit is paid to the nominee regardless of where the worker was employed.
+- Migrant workers can nominate their family members living in their native state.
+
+HOW TO ENROLL:
+1. Visit your bank branch or net banking portal.
+2. Fill the enrollment form (available at the branch or online).
+3. Provide Aadhaar and bank account details.
+4. Give consent for auto-debit of Rs 436 per year.
+5. The cover starts from the date of enrollment.
+
+CLAIM PROCESS:
+1. Inform the bank about the death of the subscriber.
+2. Submit the death certificate and claim form to the bank.
+3. The bank processes the claim and transfers Rs 2 lakh to the nominee's bank account.
+4. The claim is usually processed within 30 days.
+
+HELPLINE: 1800-11-0001 (toll-free)
+WEBSITE: jeevanjyotibima.gov.in

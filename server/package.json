@@ -1,0 +1,32 @@
+{
+  "name": "shramsetu-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "ShramSetu Node.js API server — auth (OTP), grievances, documents, notifications, government portal, audit logs. AI lives in the separate Python ai-service.",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js",
+    "seed": "node src/seed/run.js",
+    "test": "vitest run",
+    "verify": "node scripts/verify.mjs"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^8.7.0",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.5.1",
+    "multer": "^2.4.0",
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "mongodb-memory-server": "^10.0.0",
+    "supertest": "^7.3.0",
+    "vitest": "^5.0.3"
+  }
+}

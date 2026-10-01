@@ -1,0 +1,48 @@
+TITLE: Unorganised Workers' Social Security Act, 2008 — Social Security for Informal Workers
+DEPARTMENT: Ministry of Labour and Employment, Government of India
+LAST_UPDATED: 2024-11-20
+SOURCE_URL: https://www.pib.gov.in/PressReleasePage.aspx?PRID=2192463
+LAST_VERIFIED: 2026-10-01
+STATUS: superseded
+---
+The Unorganised Workers' Social Security Act, 2008 provides a framework for social security 
+benefits to workers in the unorganised sector, which includes the majority of India's workforce 
+— approximately 93% of the total workforce. This is particularly important for migrant workers 
+who often work in the informal sector without any social security coverage.
+
+Definition of unorganised worker:
+- A worker who is a home-based worker, self-employed worker, or wage worker in the unorganised 
+  sector.
+- A worker in the organised sector who is not covered under any of the social security schemes 
+  (EPF, ESI, pension schemes).
+
+Social security schemes under the Act:
+- PM Suraksha Bima Yojana (PMSBY): Accident insurance of Rs 2 lakh for accidental death or 
+  full disability, Rs 1 lakh for partial disability. Premium: Rs 20 per year.
+- PM Jeevan Jyoti Bima Yojana (PMJJBY): Life insurance of Rs 2 lakh in case of death from 
+  any cause. Premium: Rs 432 per year.
+- PM Garib Kalyan Yojana: Free foodgrains for eligible families.
+- National Pension System for Traders and Self-Employed Persons (NPS): Pension scheme with 
+  government co-contribution.
+- Atal Pension Yojana: Pension scheme for workers in the unorganised sector.
+- PM Kisan Samman Nidhi: Income support of Rs 6,000 per year in three instalments for 
+  farmer families.
+
+How to register:
+- Register on the e-Shram portal (eshram.gov.in) or visit a Common Service Centre (CSC).
+- Registration requires: Aadhaar number, bank account details, mobile number linked to Aadhaar.
+- Registration is free of cost.
+- After registration, the worker receives a UAN (Universal Account Number) card.
+
+Benefits of registration:
+- Access to all government welfare schemes through a single platform.
+- Automatic eligibility check for schemes based on the worker's profile.
+- Accident insurance cover linked to the e-Shram card.
+- Portability of benefits across states for migrant workers.
+
+Grievance redressal:
+- Call the e-Shram helpline 14434 (toll-free).
+- File complaints on the e-Shram portal.
+- Approach the District Labour Office for assistance.
+
+REPEALED — HISTORICAL INFORMATION ONLY: The Unorganised Workers' Social Security Act, 2008 was repealed when the Code on Social Security, 2020 came into force on 21 November 2025. Everything above describes the law as it stood before that date; social security for unorganised-sector workers (including e-Shram registration and linked schemes) now continues under the Code on Social Security, 2020. See the "Code on Social Security, 2020" document. Source: PIB press release PRID 2192463.

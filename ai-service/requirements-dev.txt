@@ -1,0 +1,4 @@
+# Test-only dependencies for ai-service (P3/P4). Install with:
+#   pip install -r requirements-dev.txt
+pytest==8.3.3
+pytest-asyncio==0.24.0

@@ -1,0 +1,38 @@
+TITLE: Social Security for Gig Workers and Platform Workers
+DEPARTMENT: Ministry of Labour and Employment, Government of India
+LAST_UPDATED: 2025-02-15
+SOURCE_URL: needs review
+LAST_VERIFIED: needs review
+STATUS: current
+---
+The Code on Social Security, 2020 provides for social security measures for gig workers and platform workers for the first time in India. Gig workers are persons who perform work outside the traditional employer-employee relationship, and platform workers are gig workers registered with an aggregator.
+
+KEY PROVISIONS:
+- Registration: Gig workers and platform workers shall be registered on the e-Shram portal. The aggregator shall provide the necessary information to the portal.
+- Social security fund: The Central Government shall constitute a Social Security Fund for unorganised workers, gig workers, and platform workers. The fund will be used for social security schemes.
+- Aggregator contribution: Aggregators (like ride-sharing, food delivery, and e-commerce platforms) shall contribute between 1-2% of their annual turnover towards the Social Security Fund.
+- Benefits include: Life insurance and disability cover, accident insurance, health and maternity benefits, old age protection, education for children, and any other benefit as determined by the Central Government.
+- Aggregator definition: Aggregator means a digital intermediary or a platform for a limited range of goods or services or both, and includes a transportation network company or a cooking service company.
+
+MIGRANT GIG WORKERS:
+- Migrant gig workers are eligible for all benefits under the Code on Social Security.
+- They can register on e-Shram portal from any location.
+- Their social security benefits are portable across states.
+- Platform work (like food delivery, ride-sharing) is available in all cities, making migrant workers particularly relevant beneficiaries.
+
+SPECIFIC SCHEMES:
+- PM Suraksha Bima Yojana: Rs 2 lakh accident insurance for Rs 20/year premium.
+- PM Jeevan Jyoti Bima Yojana: Rs 2 lakh life insurance for Rs 436/year premium.
+- PM-SYM Pension: Rs 3,000/month pension after age 60.
+- Ayushman Bharat: Rs 5 lakh health insurance for hospitalisation.
+
+RIGHTS OF GIG WORKERS:
+- Right to be registered on e-Shram portal.
+- Right to social security benefits.
+- Right to safe working conditions.
+- Right to minimum wages.
+- Right to protection from exploitation.
+- Right to form trade unions.
+
+HELPLINE: 14434 (e-Shram)
+WEBSITE: eshram.gov.in | labour.gov.in

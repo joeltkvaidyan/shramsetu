@@ -1,0 +1,61 @@
+TITLE: Housing, Sanitation and Basic Amenities for Workers
+DEPARTMENT: Ministry of Housing and Urban Affairs / Ministry of Jal Shakti, Government of India
+LAST_UPDATED: 2025-02-15
+SOURCE_URL: needs review
+LAST_VERIFIED: needs review
+STATUS: current
+---
+This document covers the housing, sanitation, and basic amenities schemes available to workers, especially migrant and unorganised sector workers in India.
+
+HOUSING SCHEMES:
+1. Pradhan Mantri Awas Yojana (PMAY):
+   - PMAY-Urban: Subsidy on home loans for urban poor
+   - PMAY-Gramin: Financial assistance for rural housing (Rs 1.20-1.30 lakh)
+   - Eligibility: BPL families, EWS, LIG families
+   - Migrant workers with BPL status in native state can avail
+
+2. EWS and LIG Housing:
+   - 15-20% of houses in all housing projects reserved for EWS/LIG
+   - Subsidised rates and easy EMI options
+
+SANITATION SCHEMES:
+1. Swachh Bharat Mission (SBM):
+   - Free individual household toilets (IHHL) for BPL families
+   - Rs 12,000 per toilet construction
+   - Community and public toilets in urban areas
+   - Solid waste management in cities
+
+2. Swachh Vidyalaya Abhiyan:
+   - Toilet facilities in all schools
+   - Separate toilets for boys and girls
+   - Hand washing facilities
+
+WATER SUPPLY:
+1. Jal Jeevan Mission:
+   - Functional tap water connection to every rural household by 2024
+   - 55 litres per capita per day
+   - Quality testing facilities at district and state levels
+
+2. National Rural Drinking Water Programme:
+   - Piped water supply to villages
+   - Water quality monitoring
+
+ELECTRICITY:
+1. Saubhagya Scheme:
+   - Electricity connection to all unelectrified households
+   - Free connections for BPL families
+   - Migrant workers' temporary residences also covered
+
+2. PM-KUSUM:
+   - Solar power for agriculture
+   - Benefits for rural and agricultural workers
+
+MIGRANT WORKERS:
+- Migrant workers living in construction worker colonies, brick kilns, or rented accommodation
+- Access to community toilets under Swachh Bharat Mission
+- Water supply through Jal Jeevan Mission in rural areas
+- Housing schemes available in both native and working states
+- e-Shram registration provides access to all welfare schemes
+
+HELPLINE: 1800-180-5678 (Jal Jeevan) | 1967 (Swachh Bharat)
+WEBSITE: sbm.gov.in | jaljeevanmission.gov.in | pmaymis.gov.in

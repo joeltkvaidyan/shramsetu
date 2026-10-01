@@ -1,0 +1,60 @@
+TITLE: National Career Service (NCS) — Employment Exchange
+DEPARTMENT: Ministry of Labour and Employment, Government of India
+LAST_UPDATED: needs review
+SOURCE_URL: https://www.ncs.gov.in
+LAST_VERIFIED: needs review
+STATUS: current
+---
+National Career Service (NCS) — Employment Exchange
+
+NCS is a one-stop digital platform connecting job seekers with employers across India. It replaces the old employment exchange system with a modern online portal.
+
+Key Features:
+- Free online registration for job seekers
+- Job matching based on skills, location, and preferences
+- Employers post vacancies and search candidates
+- Career counselling and guidance services
+- Skill assessment and training recommendations
+- Available in multiple languages
+
+How to Register:
+1. Visit https://www.ncs.gov.in
+2. Click on "Job Seeker" and create account
+3. Complete profile with education, skills, experience
+4. Upload resume and certificates
+5. Set job preferences (location, salary, job type)
+6. Receive job alerts matching your profile
+
+For Migrant Workers:
+- Set preferred work location in any city/state
+- Search for jobs in destination city before migrating
+- Filter by occupation: construction, manufacturing, services
+- Find employers looking for workers in specific trades
+- Get notifications for local job fairs and recruitment drives
+
+Benefits:
+- Access to lakhs of job listings from registered employers
+- Direct contact with employers (no middleman)
+- Skill gap analysis and recommended training
+- Resume builder and career guidance
+- Government job notifications
+- Job fair and campus recruitment alerts
+
+Documents Required for Registration:
+- Aadhaar card
+- Mobile number and email
+- Educational certificates
+- Skill certificates (if any)
+- Experience certificates (if any)
+- Resume/CV
+
+Employer Registration:
+- Companies register at https://www.ncs.gov.in/employer
+- Post job vacancies for free
+- Search candidate database
+- Schedule interviews through the portal
+
+Helpline:
+- NCS Helpline: 1800-425-1025
+- Website: https://www.ncs.gov.in
+- Email: support@ncs.gov.in

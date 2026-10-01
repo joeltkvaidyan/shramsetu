@@ -1,0 +1,13 @@
+{
+  "name": "ShramSetu — Migrant Worker Welfare",
+  "short_name": "ShramSetu",
+  "description": "AI-first multilingual digital welfare platform for migrant workers in India",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1a7c54",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

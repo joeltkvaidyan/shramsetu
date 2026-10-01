@@ -1,0 +1,7 @@
+
+# Local model weights (NLLB-200 + IndicTrans2) - multi-GB, never commit
+models/nllb-200-distilled-600M/
+models/indictrans2-indic-en-1B/
+models/**/dl_config.txt
+models/**/dl.out
+models/**/dl.err

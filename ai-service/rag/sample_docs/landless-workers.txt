@@ -1,0 +1,56 @@
+TITLE: Social Security for Landless Agricultural Workers
+DEPARTMENT: Ministry of Agriculture and Farmers Welfare, Government of India
+LAST_UPDATED: 2025-02-15
+SOURCE_URL: needs review
+LAST_VERIFIED: 2026-10-01
+STATUS: current
+---
+Landless agricultural workers are among the most vulnerable sections of the workforce in India. They work on agricultural farms owned by others and do not own any agricultural land. This document covers the social security schemes and rights available to landless agricultural workers.
+
+RIGHTS AND PROTECTIONS:
+- Minimum Wages: Landless agricultural workers are entitled to minimum wages as fixed by respective State Governments.
+- Payment of Wages: Wages must be paid on time without arbitrary deductions.
+- Maternity Benefit: Women agricultural workers are entitled to maternity benefits under the Code on Social Security, 2020 (which replaced the Maternity Benefit Act, 1961, itself amended in 2017 to include plantation workers).
+- Bonded Labour Abolition: Forced or bonded labour in agriculture is prohibited under the Bonded Labour System (Abolition) Act, 1976.
+- Child Labour Prohibition: Employment of children below 14 years in agricultural work is prohibited.
+
+SOCIAL SECURITY SCHEMES:
+1. MGNREGA (Mahatma Gandhi National Rural Employment Guarantee Act):
+   - Guarantee of 100 days of employment per year to rural households.
+   - Wages: Rs 200-300 per day depending on the state.
+   - Right to get employment within 15 days of applying.
+   - If employment is not provided within 15 days, unemployment allowance is payable.
+
+2. e-Shram Registration:
+   - Landless agricultural workers can register on the e-Shram portal.
+   - Eligible for various social security benefits.
+
+3. PM-KISAN:
+   - Rs 6,000 per year in three installments of Rs 2,000 each.
+   - Available to all farmer families including those with landless agricultural workers (if they are registered as farmers).
+
+4. PM-SYM Pension:
+   - Rs 3,000/month pension after age 60.
+   - Available to self-employed and unorganised workers including agricultural labourers.
+
+5. PM-SBY Insurance:
+   - Rs 2 lakh accident insurance for Rs 20/year.
+
+6. Ayushman Bharat:
+   - Rs 5 lakh health insurance for hospitalisation.
+   - Available to BPL families and identified beneficiaries.
+
+MIGRANT AGRICULTURAL WORKERS:
+- Migrant agricultural workers have the same rights as local agricultural workers.
+- They are covered under MGNREGA if they have a job card in their home state.
+- Some states have extended MGNREGA-like guarantees to migrant workers.
+- Migrant agricultural workers can register on e-Shram portal for social security.
+- Their social security benefits are portable across states.
+
+WELFARE FUNDS:
+- Construction Workers' Welfare Cess (formerly the BOCW Welfare Cess, now governed by the OSH Code, 2020): Can be used for welfare of construction workers including migrant workers.
+- Agricultural Workers' Welfare Fund: Some states have dedicated funds for agricultural workers.
+- National Social Assistance Programme: Available to BPL families including landless agricultural workers.
+
+HELPLINE: 14434 (e-Shram) | MGNREGA helpline 1800-180-5678
+WEBSITE: eshram.gov.in | nrega.nic.in | mgnrega.nic.in

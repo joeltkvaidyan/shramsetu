@@ -1,0 +1,26 @@
+TITLE: Pradhan Mantri Suraksha Bima Yojana (PMSBY) — Accident Insurance
+DEPARTMENT: Ministry of Finance (Department of Financial Services), Government of India
+LAST_UPDATED: 2025-01-10
+SOURCE_URL: https://jansuraksha.gov.in
+LAST_VERIFIED: needs review
+STATUS: current
+---
+PMSBY is a government-backed accident insurance scheme open to any Indian resident, including migrant
+workers, aged 18 to 70 years with a bank account and Aadhaar-linked mobile number.
+
+Premium: Rs 20 per year (subject to periodic revision), auto-debited from the linked bank account
+between 1 June and the enrolment window each year.
+
+Coverage:
+- Rs 2 lakh for accidental death.
+- Rs 2 lakh for full and irrecoverable loss of both eyes or use of both hands/feet, or loss of one eye
+  and one hand/foot.
+- Rs 1 lakh for loss of use of one eye or one hand/foot.
+
+How to enroll: Fill a simple one-page enrolment form at your bank branch, or enroll through net banking,
+mobile banking apps, or the Jan Suraksha portal. Many banks allow auto-renewal each year unless the
+worker opts out.
+
+How to claim: The nominee or worker must contact the bank branch where the policy was enrolled, submit
+a claim form along with a death certificate or disability certificate and FIR/post-mortem report (for
+accidental death), and the bank forwards it to the insurance company for settlement.

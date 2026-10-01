@@ -1,0 +1,48 @@
+TITLE: Employees' Compensation Act, 1923 — Compensation for Work-Related Injuries and Death
+DEPARTMENT: Ministry of Labour and Employment, Government of India
+LAST_UPDATED: 2025-03-01
+SOURCE_URL: https://www.pib.gov.in/PressReleasePage.aspx?PRID=2192463
+LAST_VERIFIED: 2026-10-01
+STATUS: superseded
+---
+The Employees' Compensation Act (formerly Workmen's Compensation Act) provides compensation to 
+employees (or their dependents) who suffer injury, disability, or death arising out of and in 
+the course of employment. This is a critical protection for migrant workers who often face 
+hazardous working conditions.
+
+Applicability:
+- Applies to all employees, including migrant workers, in establishments covered under the Act.
+- Covers factories, mines, plantations, construction sites, and other establishments as 
+  notified by the government.
+- Does NOT apply to employees covered under the ESI Act or the Armed Forces.
+
+Compensation amounts:
+- Death: Minimum compensation is the amount equal to 50% of the monthly wages of the deceased 
+  employee multiplied by the relevant factor (based on age), or Rs 1,20,000, whichever is higher.
+- Total disablement: The same amount as for death, reduced proportionally for partial disablement.
+- Partial disablement: Compensation is paid as a percentage of the full disablement amount, 
+  based on the percentage of disablement certified by a medical board.
+- Time limit: Compensation must be claimed within 2 years from the date of accident (or death).
+
+Important provisions for migrant workers:
+- The employer is liable to pay compensation regardless of whether the worker is a local or 
+  migrant.
+- The compensation is in addition to any other remedy available under any other law.
+- The employer cannot contract out of this liability (any agreement to the contrary is void).
+- If the employer fails to pay compensation, the employee can file a claim with the 
+  Commissioner for Employees' Compensation.
+
+How to claim:
+- File a claim with the Commissioner for Employees' Compensation in the area where the 
+  accident occurred.
+- Submit: medical certificate, proof of employment, details of the accident, and any other 
+  relevant documents.
+- The commissioner will investigate and determine the compensation amount.
+- The compensation is payable within 30 days of the award.
+
+Important contacts:
+- District Labour Office.
+- Commissioner for Employees' Compensation (appointed by the state government).
+- Toll-free labour helpline: 14400.
+
+REPEALED — HISTORICAL INFORMATION ONLY: The Employees' Compensation Act, 1923 was repealed when the Code on Social Security, 2020 came into force on 21 November 2025. Everything above describes the law as it stood before that date; employer-liability compensation for work-related injury and death now continues under the Code on Social Security, 2020. See the "Code on Social Security, 2020" document. Source: PIB press release PRID 2192463.

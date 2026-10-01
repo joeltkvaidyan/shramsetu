@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+.pytest_cache/
+*.db
+
+# Node
+node_modules/
+dist/
+.vite/
+tsconfig.tsbuildinfo
+
+# TLS certs — generate locally, never commit (see README "Local HTTPS" section)
+*.pem
+*.pem.bak
+*.key
+*.crt
+
+# Env
+.env
+!.env.example
+
+# Uploads — private worker documents, never commit
+server/uploads/*
+!server/uploads/.gitkeep
+
+# Generated RAG index (built from rag/sample_docs on boot)
+ai-service/rag/index/
+
+# Logs and error captures
+logs/*
+!logs/.gitkeep
+*.log
+*.err
+
+# OS
+.DS_Store
+
+# Local agent workspace
+.freebuff/
+
+# Stray debug artifacts
+_tok.txt
+
+# Local model weights (Whisper, NLLB, IndicTrans2) — never commit
+ai-service/models/
