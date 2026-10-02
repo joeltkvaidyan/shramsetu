@@ -10,6 +10,7 @@ import ChatbotPage from "./pages/ChatbotPage";
 import SettingsPage from "./pages/SettingsPage";
 import GrievanceListPage from "./pages/GrievanceListPage";
 import GrievanceFormPage from "./pages/GrievanceFormPage";
+import WageLogPage from "./pages/WageLogPage";
 import { getGovToken } from "./api/client";
 import GrievanceDetailPage from "./pages/GrievanceDetailPage";
 import GovernmentLoginPage from "./pages/GovernmentLoginPage";
@@ -48,6 +49,10 @@ export default function App() {
       <Route
         path="/worker/chat"
         element={<ProtectedRoute><ChatbotPage /></ProtectedRoute>}
+      />
+      <Route
+        path="/worker/wages"
+        element={<ProtectedRoute><WageLogPage /></ProtectedRoute>}
       />
       <Route
         path="/worker/grievances"

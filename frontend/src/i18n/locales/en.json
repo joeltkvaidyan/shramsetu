@@ -281,6 +281,47 @@
     "chat": "Chat",
     "settings": "Settings"
   },
+  "wages": {
+    "title": "Wage Diary",
+    "subtitle": "Your daily wage record",
+    "month": "Month",
+    "addEntry": "Add wage entry",
+    "workDate": "Work date",
+    "employer": "Employer name (optional)",
+    "agreedAmount": "Agreed amount (₹)",
+    "paidAmount": "Amount paid (₹)",
+    "agreedAmountShort": "Agreed:",
+    "paidAmountShort": "Paid:",
+    "save": "Save entry",
+    "saving": "Saving...",
+    "savedOk": "Wage entry saved",
+    "invalidAmounts": "Please enter valid amounts — paid cannot exceed agreed.",
+    "summaryDays": "Days logged",
+    "summaryAgreed": "Total agreed",
+    "summaryPaid": "Total paid",
+    "summaryUnpaid": "Unpaid",
+    "status": {
+      "paid": "Fully paid",
+      "unpaid": "Unpaid",
+      "partial": "Partial"
+    },
+    "empty": "No wage entries for this month yet.",
+    "fileGrievance": "File unpaid wage complaint",
+    "grievanceSubject": "Unpaid wages: {{amount}} pending",
+    "grievanceDescription": "As per my wage diary, {{amount}} of my agreed wages remain unpaid (period: {{period}}, {{days}} day(s) logged). I have not received the full agreed wages for this work. Please help me recover the pending amount.",
+    "last90Days": "last 90 days",
+    "selfReported": "Entries are self-reported by you — they are not verified with your employer."
+  },
+  "sos": {
+    "button": "SOS — Emergency help",
+    "modalTitle": "Raise SOS alert",
+    "notice": "Your alert will appear on government officials' dashboards in your area. This app does not send SMS or call anyone.",
+    "locationLabel": "Where are you? (optional)",
+    "noteLabel": "What happened? (optional)",
+    "confirm": "Raise alert now",
+    "raised": "Alert sent. Officials in your area will see it on their dashboard.",
+    "failed": "Could not raise the alert. Please try again."
+  },
   "errors": {
     "network": "You appear to be offline. Check your connection and try again.",
     "rateLimited": "Too many attempts. Please wait a minute and try again.",

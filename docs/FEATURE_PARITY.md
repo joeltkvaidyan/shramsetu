@@ -1,105 +1,100 @@
-# Feature-Parity Audit — Pitch vs Code (REPORT ONLY)
+# Feature-Parity Audit — Pitch vs Code
 
-**Date:** 2026-10-01 · **Status:** audit only. Nothing here has been implemented;
-each item below needs explicit go-ahead before any code is written.
+**Audited:** 2026-10-01 (report only) · **Implemented:** 2026-10-02 — all three
+proposals below are now built, tested and verified end-to-end.
 
 The project pitch names, among others: emergency **SOS**, **digital ID**,
 **wage logging**, plus the AI assistant, grievances and the document wallet.
-The last three exist end-to-end. This file records, with evidence, which of
-the headline features have no working route/model/page today, and proposes the
-smallest honest version of each — scoped so it can be demoed in a viva without
-overclaiming.
+The last three existed end-to-end at audit time. This file records what was
+missing then, what was built to close the gap, where it lives, and the honest
+limitations that the UI keeps stating.
 
 ---
 
-## 1. Emergency SOS — NOT IMPLEMENTED
+## 1. Emergency SOS — IMPLEMENTED (dashboard-delivery only)
 
-**Evidence (grep across repo, 2026-10-01):**
-- `server/src/routes/` has no SOS/panic/emergency route; `server/src/models/`
-  has no SOS or alert model.
-- The only "emergency" data in the system is the worker's **emergency contact
-  name/relation/number**, captured at registration
-  (`server/src/routes/auth.js` lines ~160-162, stored on `models/User.js`) and
-  never used by any feature.
-- No frontend SOS button, page or route exists.
+**What was missing (audit evidence, 2026-10-01):** no SOS/alert model or route;
+emergency contact fields existed on `User` but were never used by any feature;
+no frontend button.
 
-**Proposed smallest version (worker → officials' dashboard):**
-- `POST /sos` (worker JWT): stores `{ worker, location_text (optional),
-  timestamp }` in a new `SosAlert` model, snapshots the worker's stored
-  emergency contact onto the alert, and notifies all officials whose
-  jurisdiction covers the worker (reuse the Phase-1 `grievanceScopeFilter`
-  worker-resolution). Broadcast to the dashboard via the officials' next poll
-  (no websockets needed for a demo).
-- Frontend: a single SOS button on `WorkerDashboardPage` (long-press or
-  3-second hold to avoid accidental taps) + a red "SOS alerts" panel on the
-  government dashboard. Officer "acknowledge" writes an audit log entry
-  (Phase-2 audit middleware already exists).
-- Honest limitation: **no SMS/push is actually delivered** to the worker's
-  emergency contact — there is no SMS provider configured. The alert appears
-  only on the officials' dashboard and the emergency contact is recorded on
-  the alert for manual dialling. The UI copy must say exactly that.
+**What was built:**
+- `server/src/models/SosAlert.js` — worker snapshot (id/name/mobile),
+  `owner_state`/`owner_district` (mirrors the Grievance convention so the
+  Phase-1 `grievanceScopeFilter` works verbatim), `location_text`, `note`,
+  `status` (open|acknowledged), emergency-contact snapshot, `acknowledgements[]`.
+- `server/src/routes/sos.js`, mounted at `/api/v1/sos`:
+  `POST /` (worker JWT — snapshots contact + jurisdiction, returns
+  `delivery: "dashboard_only"`), `GET /` (officials — scope-filtered list),
+  `POST /:id/acknowledge` (per-document scope check → 403 outside
+  jurisdiction; writes an audit log entry).
+- Worker frontend: red **SOS** tile on `WorkerDashboardPage` opening a Modal
+  with an honest `role="alert"` notice ("appears on officials' dashboards…
+  does not send SMS or call anyone"), optional location/note, and a success
+  state. No long-press — the confirm step inside the modal guards accidental
+  taps instead.
+- Government frontend: **SOS Alerts** tab on `GovernmentDashboardPage`
+  (open alerts highlighted red, Acknowledge button, jurisdiction note, ack
+  attribution). Uses `govGetSosAlerts` / `govAcknowledgeSos` in
+  `frontend/src/api/governmentClient.ts`.
+- i18n: `sos.*` keys in all 6 locales (en/hi/bn/te/ta/ml).
 
-## 2. Digital ID (QR) — PARTIAL: ID exists, QR generation does not
+**Honest limitation (unchanged, stated in UI copy and API response):** no
+SMS/push is delivered to anyone. The alert appears only on the officials'
+dashboard and the emergency contact is recorded on the alert for manual
+dialling.
 
-**Evidence:**
-- `models/User.js` has `qr_code: { type: String, default: null }` — **always
-  null today**; nothing in `routes/` or `services/` ever generates a value.
-- The worker dashboard renders `worker.qr_code` only when truthy
-  (`WorkerDashboardPage.tsx` lines ~80-88) — so workers see the ID card and
-  copy button, but **no QR code is ever displayed**.
-- `frontend/package.json` ships `qrcode.react@^4.1.0` — **installed but never
-  imported anywhere** (grep: 0 matches in `frontend/src`).
-- The backend `qr_code` comment ("data URL (worker ID QR)") references a
-  `qrcode` server dependency that Phase-4 cleanup removed from
-  `requirements.txt` — that was the ai-service file; there is no `qrcode` dep
-  in `server/package.json` today.
+## 2. Digital ID (QR) — IMPLEMENTED (frontend-only)
 
-**Proposed smallest version (frontend-only, zero backend change):**
-- Render the existing `worker_id` as a QR on the worker ID card with the
-  already-installed `qrcode.react` (`<QRCodeSVG value={worker.worker_id}>`).
-- Backend stays as-is: either leave `qr_code` null (frontend renders the QR
-  client-side) or, one-liner, stop sending the misleading null field. Keep the
-  `qr_code` model field documented as reserved.
-- What the QR encodes must be honest: the **worker ID string only** — not a
-  verifiable credential, not a government-validated token. Verifier-side
-  lookup (an official scanning it to pull the worker's scope-filtered record)
-  is a stretch goal and would need a scan page on the dashboard.
+**What was missing (audit evidence):** `User.qr_code` was always null, nothing
+generated a value, and `qrcode.react` was installed but never imported.
 
-## 3. Wage Logging — NOT IMPLEMENTED (only a grievance category exists)
+**What was built:**
+- `WorkerDashboardPage.tsx` renders the ID-card QR client-side with
+  `<QRCodeSVG value={worker.worker_id}>` — zero backend change, the reserved
+  `qr_code` field stays null and documented as such.
+- Honest scope: the QR encodes the **worker ID string only**. It is an offline
+  identity helper, not a verifiable credential. Verifier-side scan-to-lookup
+  remains a stretch goal.
 
-**Evidence:**
-- No wage model or route anywhere in `server/src/` (grep `wage` matches only
-  the `unpaid_wages` grievance category string and chatbot sample text).
-- Frontend: `unpaid_wages` is the default category in `GrievanceFormPage`,
-  a filter option in `GrievanceListPage`, and a translation string — no page,
-  no entries, no summary.
-- The i18n locales already carry `grievance.categories.unpaid_wages` in all
-  6 languages, so the grievance linkage is pre-translated.
+## 3. Wage Logging — IMPLEMENTED
 
-**Proposed smallest version (per-day wage log → pre-filled grievance):**
-- `server/src/models/WageEntry.js`: `{ worker, work_date, employer_name,
-  agreed_amount, paid_amount, payment_status (paid|unpaid|partial) }`
-  (one entry per worker+date, upsert). `POST/GET/DELETE /wages` (worker JWT,
-  ownership-scoped like documents).
-- Worker frontend: a simple "Wage log" page — add-entry form and a monthly
-  list; header summary `total agreed / total paid / total unpaid` for the
-  selected month.
-- The viva-worthy integration: a **"File grievance"** action on the unpaid
-  summary that deep-links to `GrievanceFormPage` with category
-  `unpaid_wages`, subject and description pre-filled from the unpaid entries
-  (via query params or location state — no backend coupling).
-- Honest limitation: entries are self-reported by the worker; nothing is
-  verified against an employer. That is stated in the UI footnote.
+**What was missing (audit evidence):** no wage model/route anywhere; only the
+`unpaid_wages` grievance category existed.
+
+**What was built:**
+- `server/src/models/WageEntry.js` — one entry per worker+date (unique index),
+  `employer_name`, `agreed_amount`, `paid_amount`,
+  `payment_status` (paid|unpaid|partial).
+- `server/src/routes/wages.js`, mounted at `/api/v1/wages`:
+  `GET /?month=YYYY-MM` (list), `GET /summary?month=YYYY-MM` (default last 90
+  days; derives `total_unpaid`), `POST /` (validated upsert by UTC day —
+  paid ≤ agreed, status auto-derived), `DELETE /:id` (ownership-scoped,
+  cross-worker deletes are a no-op). Aggregate `$match` casts
+  `req.userId` to ObjectId explicitly.
+- Worker frontend `frontend/src/pages/WageLogPage.tsx` (route
+  `/worker/wages`): summary header (days/agreed/paid/unpaid) for the selected
+  month, add-entry form with client-side validation, monthly list with status
+  badges, and a self-reported footnote.
+- The viva-worthy integration: when the month has unpaid wages, a **"File
+  unpaid wage complaint"** button deep-links to `GrievanceFormPage` with
+  category `unpaid_wages`, subject and description pre-filled from the summary
+  (via `location.state`; the form now initialises from it — no backend
+  coupling).
+- i18n: `wages.*` keys in all 6 locales.
+- Honest limitation (stated in UI footnote): entries are self-reported by the
+  worker; nothing is verified against an employer.
 
 ---
 
-## Effort summary (if approved)
+## Verification (2026-10-02)
 
-| Feature | Backend | Frontend | New i18n keys |
-|---|---|---|---|
-| SOS | 1 route + 1 model + scope reuse | 1 button + 1 dashboard panel | ~6 × 6 langs |
-| Digital ID QR | none (or 1-line model tweak) | 1 component on existing card | 0 |
-| Wage log | 1 model + 3 routes | 1 page + pre-fill link | ~12 × 6 langs |
+| Check | Result |
+|---|---|
+| `npm test` (server) | **50/50** — 40 security + 10 new parity tests (`tests/parity.test.js`: wage upsert/validation/summary/ownership-delete/gov-403; SOS raise snapshot/worker-403-list/district-scoped list+ack/out-of-district-403/state scoping) |
+| `npx tsc -b` + `npm run build` (frontend) | clean |
+| `npm run verify` (live stack :8000/:8100) | **32/32** — 7 new live checks: wage upsert→partial, same-day upsert→paid (no dup row), summary totals, ownership delete, SOS raise (`delivery=dashboard_only`), gov scoped visibility, official acknowledge |
 
-All three are additive — no change to existing API response shapes, no
-restyling of existing screens.
+Known flake (pre-existing, unrelated to these features): the very first
+`chat/ask` after a cold AI-service start can outlive the Node proxy's abort
+window while the embedding model loads; a re-run passes. Worth a proxy timeout
+bump or a startup prewarm later.

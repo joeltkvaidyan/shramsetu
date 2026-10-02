@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, Search, Users, UserCheck, Megaphone, Flag } from "lucide-react";
+import { LogOut, Search, Users, UserCheck, Megaphone, Flag, Siren } from "lucide-react";
 import { getGovToken, clearGovToken } from "../api/client";
 import NotificationsPanel from "../components/government/NotificationsPanel";
 import {
@@ -10,14 +10,17 @@ import {
   govUpdateGrievanceStatus,
   govGetNotifications,
   govGetAuditLogs,
+  govGetSosAlerts,
+  govAcknowledgeSos,
   type DashboardStats,
   type WorkerRecord,
   type GovGrievance,
   type GovNotification,
   type AuditLog,
+  type SosAlert,
 } from "../api/governmentClient";
 
-type Tab = "overview" | "grievances" | "workers" | "notifications" | "audit";
+type Tab = "overview" | "grievances" | "sos" | "workers" | "notifications" | "audit";
 
 export default function GovernmentDashboardPage() {
   const navigate = useNavigate();
@@ -30,6 +33,8 @@ export default function GovernmentDashboardPage() {
   const [grievances, setGrievances] = useState<GovGrievance[]>([]);
   const [notifications, setNotifications] = useState<GovNotification[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [sosAlerts, setSosAlerts] = useState<SosAlert[]>([]);
+  const [sosError, setSosError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [grievanceStatusFilter, setGrievanceStatusFilter] = useState("");
   const [grievanceCategoryFilter, setGrievanceCategoryFilter] = useState("");
@@ -65,6 +70,9 @@ export default function GovernmentDashboardPage() {
       } else if (activeTab === "audit") {
         const res = await govGetAuditLogs(token);
         setAuditLogs(res.logs || []);
+      } else if (activeTab === "sos") {
+        const res = await govGetSosAlerts(token);
+        setSosAlerts(res.alerts || []);
       }
     } catch (err: any) {
       console.error("Failed to load:", err);
@@ -88,6 +96,23 @@ export default function GovernmentDashboardPage() {
     }
   };
 
+  const handleAcknowledgeSos = async (id: string) => {
+    if (!token) return;
+    setSosError(null);
+    try {
+      await govAcknowledgeSos(token, id);
+      loadTabData();
+    } catch (err: any) {
+      // 403 = alert is outside this official's jurisdiction (scope-checked
+      // server-side); anything else is surfaced as a generic failure.
+      setSosError(
+        err?.response?.status === 403
+          ? "Outside your jurisdiction"
+          : "Could not acknowledge the alert."
+      );
+    }
+  };
+
   const handleLogout = () => {
     clearGovToken();
     localStorage.removeItem("gov_user");
@@ -97,6 +122,7 @@ export default function GovernmentDashboardPage() {
   const tabs: { key: Tab; icon: string; label: string }[] = [
     { key: "overview", icon: "📊", label: "Overview" },
     { key: "grievances", icon: "📢", label: "Grievances" },
+    { key: "sos", icon: "🚨", label: "SOS Alerts" },
     { key: "workers", icon: "👷", label: "Workers" },
     { key: "notifications", icon: "🔔", label: "Notifications" },
     { key: "audit", icon: "📋", label: "Audit Logs" },
@@ -393,6 +419,84 @@ export default function GovernmentDashboardPage() {
         )}
 
         {/* ── Notifications Tab ──────────────────────────────── */}
+        {/* ── SOS Alerts Tab (dashboard-delivery only) ───────── */}
+        {!loading && activeTab === "sos" && (
+          <div className="space-y-4">
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-3 text-sm text-amber-300 flex items-start gap-2">
+              <Siren className="h-4 w-4 mt-0.5 shrink-0" aria-hidden="true" />
+              <span>
+                Alerts raised by workers in your jurisdiction appear here on your dashboard. The system does not send SMS or phone calls — workers are told this when they raise an alert.
+              </span>
+            </div>
+            {sosError && (
+              <p role="alert" className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3">
+                {sosError}
+              </p>
+            )}
+            {sosAlerts.length === 0 ? (
+              <p className="text-slate-500 text-center py-8">No SOS alerts found</p>
+            ) : (
+              <div className="space-y-3">
+                {sosAlerts.map((a) => (
+                  <div key={a.id} className={`bg-slate-800/50 border rounded-xl p-4 ${
+                    a.status === "open" ? "border-red-500/40" : "border-slate-700"
+                  }`}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                            a.status === "open" ? "bg-red-500/20 text-red-400" : "bg-green-500/20 text-green-400"
+                          }`}>
+                            {a.status === "open" ? "OPEN" : "Acknowledged"}
+                          </span>
+                          <span className="text-slate-500 text-xs">
+                            {a.created_at ? new Date(a.created_at).toLocaleString() : "-"}
+                          </span>
+                        </div>
+                        <h3 className="font-medium text-white">
+                          {a.worker_name || "Unknown worker"}
+                          {a.worker_id && <span className="font-mono text-blue-400 text-sm ml-2">{a.worker_id}</span>}
+                        </h3>
+                        {a.worker_mobile && <p className="text-slate-300 text-sm mt-0.5">📱 {a.worker_mobile}</p>}
+                        {a.location_text && <p className="text-slate-300 text-sm mt-0.5">📍 {a.location_text}</p>}
+                        {a.note && <p className="text-slate-400 text-sm mt-1">{a.note}</p>}
+                        {(a.owner_state || a.owner_district) && (
+                          <p className="text-slate-500 text-xs mt-1">
+                            {[a.owner_district, a.owner_state].filter(Boolean).join(", ")}
+                          </p>
+                        )}
+                        {a.emergency_contact_name && (
+                          <p className="text-slate-500 text-xs mt-1">
+                            Emergency contact: {a.emergency_contact_name}
+                            {a.emergency_contact_relation ? ` (${a.emergency_contact_relation})` : ""}
+                            {a.emergency_contact_number ? ` — ${a.emergency_contact_number}` : ""}
+                          </p>
+                        )}
+                        {a.acknowledgements && a.acknowledgements.length > 0 && (
+                          <p className="text-slate-500 text-xs mt-1">
+                            Acknowledged by {a.acknowledgements[a.acknowledgements.length - 1].official_name}
+                            {a.acknowledgements[a.acknowledgements.length - 1].acknowledged_at
+                              ? ` at ${new Date(a.acknowledgements[a.acknowledgements.length - 1].acknowledged_at!).toLocaleString()}`
+                              : ""}
+                          </p>
+                        )}
+                      </div>
+                      {a.status === "open" && (
+                        <button
+                          onClick={() => handleAcknowledgeSos(a.id)}
+                          className="bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1.5 rounded-lg transition shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        >
+                          Acknowledge
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {!loading && activeTab === "notifications" && token && (
           <NotificationsPanel token={token} notifications={notifications} onSent={loadTabData} />
         )}

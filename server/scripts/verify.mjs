@@ -105,6 +105,34 @@ check("document download decrypts correctly", dl.status === 200 && (await dl.tex
 r = await fetch(`${B}/documents/${doc.id}`, { method: "DELETE", headers: wh });
 check("document delete", r.status === 200);
 
+// ── 8.5 Wage diary + SOS (P6 parity features) ────────────────────────
+// Wage entry for a fixed date — upsert by (worker, date) keeps re-runs clean.
+r = await fetch(`${B}/wages`, { method: "POST", headers: { ...wh, ...jsonHeaders }, body: JSON.stringify({ work_date: "2026-01-15", agreed_amount: 500, paid_amount: 200, employer_name: "Verify Site" }) });
+const wage = await r.json();
+check("wage upsert → partial status derived", r.status === 201 && wage.payment_status === "partial", JSON.stringify(wage));
+
+r = await fetch(`${B}/wages`, { method: "POST", headers: { ...wh, ...jsonHeaders }, body: JSON.stringify({ work_date: "2026-01-15", agreed_amount: 500, paid_amount: 500 }) });
+const wage2 = await r.json();
+check("same-day upsert → paid (no duplicate row)", r.status === 201 && wage2.id === wage.id && wage2.payment_status === "paid");
+
+const wageSum = await (await fetch(`${B}/wages/summary?month=2026-01`, { headers: wh })).json();
+check("wage summary totals", wageSum.total_agreed >= 500 && wageSum.total_unpaid === wageSum.total_agreed - wageSum.total_paid, JSON.stringify(wageSum));
+
+r = await fetch(`${B}/wages/${wage.id}`, { method: "DELETE", headers: wh });
+check("wage entry delete (ownership-scoped)", r.status === 200);
+
+// SOS: raised by the worker, delivered ONLY to officials' dashboards.
+r = await fetch(`${B}/sos`, { method: "POST", headers: { ...wh, ...jsonHeaders }, body: JSON.stringify({ location_text: "Verify site", note: "Automated verification alert" }) });
+const sos = await r.json();
+check("SOS raise (delivery=dashboard_only, open)", r.status === 201 && sos.delivery === "dashboard_only" && sos.status === "open", JSON.stringify({ delivery: sos.delivery, status: sos.status }));
+
+const govSos = (await (await fetch(`${B}/sos`, { headers: gt })).json()).alerts;
+check("government sees the scoped SOS alert", Array.isArray(govSos) && govSos.some((a) => a.id === sos.id), `alerts=${govSos?.length}`);
+
+r = await fetch(`${B}/sos/${sos.id}/acknowledge`, { method: "POST", headers: gt });
+const ack = await r.json();
+check("official acknowledges SOS", r.status === 200 && ack.status === "acknowledged" && (ack.acknowledgements || []).length > 0);
+
 // ── 9. AI assistant via Node proxy ───────────────────────────────────
 // Health first, so a down AI service fails HERE with a clear message
 // instead of quietly passing on the Node server's fallback reply.

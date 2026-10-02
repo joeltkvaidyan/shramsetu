@@ -115,3 +115,42 @@ export interface GrievanceDetail extends Grievance {
   worker_feedback?: string | null;
   feedback_at?: string | null;
 }
+
+/** One self-reported wage day-sheet row (worker-side). */
+export interface WageEntry {
+  id: string;
+  work_date: string;
+  employer_name: string | null;
+  agreed_amount: number;
+  paid_amount: number;
+  payment_status: "paid" | "unpaid" | "partial";
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WageSummary {
+  days_logged: number;
+  total_agreed: number;
+  total_paid: number;
+  total_unpaid: number;
+  period: string;
+}
+
+/** SOS alert as delivered to the officials' dashboard (dashboard-only). */
+export interface SosAlert {
+  id: string;
+  worker_id: string;
+  worker_name: string | null;
+  worker_mobile: string | null;
+  status: "open" | "acknowledged";
+  location_text: string | null;
+  note: string | null;
+  owner_state: string | null;
+  owner_district: string | null;
+  emergency_contact_name: string | null;
+  emergency_contact_relation: string | null;
+  emergency_contact_number: string | null;
+  acknowledgements: { official_name?: string; acknowledged_at?: string }[];
+  created_at: string;
+  delivery?: string;
+}

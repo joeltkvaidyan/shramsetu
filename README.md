@@ -5,7 +5,10 @@ welfare: OTP-verified registration (with explicit AI-processing consent), a
 secure encrypted document wallet, grievance filing with tracking, a
 jurisdiction-scoped government dashboard with notifications and audit logs,
 and a **multilingual AI welfare assistant** — RAG over curated government
-scheme documents — with **voice in/out**.
+scheme documents — with **voice in/out**. The worker dashboard also carries a
+**QR digital ID card**, a **wage diary** that can pre-fill an unpaid-wages
+grievance, and an **emergency SOS** that reaches officials' dashboards
+(honest scope: dashboard delivery only — no SMS/push is sent).
 
 Supported languages: **English, Hindi, Bengali, Telugu, Tamil, Malayalam**.
 
@@ -34,6 +37,7 @@ Supported languages: **English, Hindi, Bengali, Telugu, Tamil, Malayalam**.
 │  users·grievances│          │    citations + disclaimer   │
 │  documents·notifs│          │  · STT: faster-whisper small│
 │  audit·chat      │          │  · TTS: Sarvam / Google     │
+│  wages·sos       │          │                             │
 └──────────────────┘          │  · PII stripped before any  │
                               │    external provider call   │
                               └─────────────────────────────┘
@@ -124,8 +128,8 @@ demo workers/grievances if the users collection is empty.
 
 | Suite | Command | Covers |
 |---|---|---|
-| Server unit/security | `cd server && npm test` | 40 tests: scoping, ownership, upload crypto, rate limits, auth hardening |
-| End-to-end checks | `cd server && npm run verify` | 25 live checks across both services |
+| Server unit/security | `cd server && npm test` | 50 tests: scoping, ownership, upload crypto, rate limits, auth hardening, wage/SOS parity |
+| End-to-end checks | `cd server && npm run verify` | 32 live checks across both services (incl. wage + SOS round trips) |
 | AI service | `cd ai-service && venv/Scripts/python -m pytest` | 35 tests: corpus integrity, loader, RAG contract, PII, prompt injection |
 | RAG eval harness | `venv/Scripts/python eval/run_eval.py` | hit@1/hit@3, retrieval refusals, per-language → `eval/RESULTS.md` |
 

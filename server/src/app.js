@@ -10,6 +10,8 @@ import documentRoutes from "./routes/documents.js";
 import governmentRoutes from "./routes/government.js";
 import settingsRoutes from "./routes/settings.js";
 import chatRoutes from "./routes/chat.js";
+import wageRoutes from "./routes/wages.js";
+import sosRoutes from "./routes/sos.js";
 
 /**
  * The Express app, separated from bootstrap (DB connect + listen) so the
@@ -44,6 +46,8 @@ app.use("/api/v1/documents", documentRoutes);
 app.use("/api/v1/government", governmentRoutes);
 app.use("/api/v1/settings", settingsRoutes);
 app.use("/api/v1/chat", chatRoutes);
+app.use("/api/v1/wages", wageRoutes);
+app.use("/api/v1/sos", sosRoutes);
 
 // 404 for unknown API routes
 app.use("/api", (req, res) => res.status(404).json({ detail: "Not found" }));

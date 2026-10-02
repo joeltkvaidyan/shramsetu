@@ -10,10 +10,16 @@ import {
   Copy,
   Check,
   Clock,
+  IndianRupee,
+  Siren,
+  CheckCircle2,
 } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import { useAuth } from "../store/AuthContext";
 import { BottomNav } from "../components/BottomNav";
 import { Card, Badge, Avatar, SkeletonList } from "../components/ui";
+import { Button } from "../components/ui/Button";
+import { Modal } from "../components/ui/Modal";
 import { api } from "../api/client";
 import type { Grievance } from "../types";
 
@@ -23,6 +29,14 @@ export default function WorkerDashboardPage() {
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
   const [recent, setRecent] = useState<Grievance[] | null>(null);
+
+  // SOS raise — dashboard-delivery only; the modal must always say so.
+  const [sosOpen, setSosOpen] = useState(false);
+  const [sosLocation, setSosLocation] = useState("");
+  const [sosNote, setSosNote] = useState("");
+  const [sosSending, setSosSending] = useState(false);
+  const [sosRaised, setSosRaised] = useState(false);
+  const [sosError, setSosError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -44,6 +58,33 @@ export default function WorkerDashboardPage() {
       setTimeout(() => setCopied(false), 1600);
     } catch {
       /* clipboard unavailable — non-critical */
+    }
+  };
+
+  const closeSos = () => {
+    setSosOpen(false);
+    setSosRaised(false);
+    setSosError(null);
+    setSosLocation("");
+    setSosNote("");
+  };
+
+  const raiseSos = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (sosSending) return;
+    setSosError(null);
+    setSosSending(true);
+    try {
+      // Dashboard-only delivery — no SMS/phone call happens anywhere.
+      await api.post("/sos", {
+        location_text: sosLocation || undefined,
+        note: sosNote || undefined,
+      });
+      setSosRaised(true);
+    } catch {
+      setSosError(t("sos.failed", "Could not raise the alert. Please try again."));
+    } finally {
+      setSosSending(false);
     }
   };
 
@@ -77,13 +118,20 @@ export default function WorkerDashboardPage() {
               <p className="text-lg font-mono font-bold text-brand-700 dark:text-brand-400">{worker.worker_id}</p>
             </div>
             <div className="flex items-center gap-3">
-              {worker.qr_code && (
-                <img
-                  src={worker.qr_code}
-                  alt="QR Code"
-                  className="w-14 h-14 rounded-lg border border-gray-200 dark:border-gray-600 bg-white p-0.5"
+              {/* Digital ID QR — encodes the worker_id only. It is an offline
+                  identity helper, not a verifiable credential. */}
+              <span
+                className="w-14 h-14 rounded-lg border border-gray-200 dark:border-gray-600 bg-white p-0.5 inline-flex items-center justify-center shrink-0"
+                title={t("dashboard.qrCode", "QR Code")}
+              >
+                <QRCodeSVG
+                  value={worker.worker_id}
+                  size={52}
+                  level="M"
+                  aria-label={t("dashboard.qrCode", "QR Code")}
+                  role="img"
                 />
-              )}
+              </span>
               <button
                 onClick={copyWorkerId}
                 className="p-2 rounded-lg text-gray-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/30 transition"
@@ -117,10 +165,23 @@ export default function WorkerDashboardPage() {
             delay={180}
           />
           <ActionTile
+            Icon={IndianRupee}
+            label={t("wages.title", "Wage Diary")}
+            onClick={() => navigate("/worker/wages")}
+            delay={240}
+          />
+          <ActionTile
             Icon={Settings}
             label={t("dashboard.settings")}
             onClick={() => navigate("/worker/settings")}
-            delay={240}
+            delay={300}
+          />
+          <ActionTile
+            Icon={Siren}
+            label={t("sos.button", "SOS — Emergency help")}
+            onClick={() => setSosOpen(true)}
+            danger
+            delay={360}
           />
         </div>
 
@@ -179,6 +240,63 @@ export default function WorkerDashboardPage() {
         </div>
       </main>
 
+      {/* SOS modal — honest delivery notice (dashboard-only, no SMS). */}
+      <Modal open={sosOpen} onClose={closeSos} title={t("sos.modalTitle", "Raise SOS alert")}>
+        {sosRaised ? (
+          <div role="status" className="text-center py-4">
+            <CheckCircle2 className="h-12 w-12 text-green-600 mx-auto" aria-hidden="true" />
+            <p className="text-sm text-gray-700 dark:text-gray-200 mt-3">
+              {t("sos.raised", "Alert sent. Officials in your area will see it on their dashboard.")}
+            </p>
+            <Button className="mt-4" onClick={closeSos}>
+              {t("common.back", "Back")}
+            </Button>
+          </div>
+        ) : (
+          <form onSubmit={raiseSos} className="space-y-4">
+            <p
+              role="alert"
+              className="text-sm text-amber-800 dark:text-amber-200 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3"
+            >
+              {t("sos.notice", "Your alert will appear on government officials' dashboards in your area. This app does not send SMS or call anyone.")}
+            </p>
+            <div>
+              <label htmlFor="sos-location" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {t("sos.locationLabel", "Where are you? (optional)")}
+              </label>
+              <input
+                id="sos-location"
+                className="input-field"
+                maxLength={200}
+                value={sosLocation}
+                onChange={(e) => setSosLocation(e.target.value)}
+              />
+            </div>
+            <div>
+              <label htmlFor="sos-note" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {t("sos.noteLabel", "What happened? (optional)")}
+              </label>
+              <textarea
+                id="sos-note"
+                rows={3}
+                maxLength={500}
+                className="input-field resize-none"
+                value={sosNote}
+                onChange={(e) => setSosNote(e.target.value)}
+              />
+            </div>
+            {sosError && (
+              <p role="alert" className="field-error">
+                {sosError}
+              </p>
+            )}
+            <Button type="submit" variant="danger" loading={sosSending} className="w-full">
+              {t("sos.confirm", "Raise alert now")}
+            </Button>
+          </form>
+        )}
+      </Modal>
+
       <BottomNav />
     </div>
   );
@@ -189,12 +307,14 @@ function ActionTile({
   label,
   onClick,
   featured = false,
+  danger = false,
   delay = 0,
 }: {
   Icon: React.ComponentType<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
   label: string;
   onClick: () => void;
   featured?: boolean;
+  danger?: boolean;
   delay?: number;
 }) {
   return (
@@ -202,7 +322,9 @@ function ActionTile({
       onClick={onClick}
       style={{ animationDelay: `${delay}ms` }}
       className={`card !p-0 overflow-hidden text-left active:scale-[0.97] transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 animate-fade-up hover:shadow-card-hover ${
-        featured
+        danger
+          ? "bg-gradient-to-br from-red-600 to-red-800 border-transparent text-white shadow-lg shadow-red-600/25"
+          : featured
           ? "bg-gradient-to-br from-brand-600 to-brand-800 border-transparent text-white shadow-glow-brand"
           : ""
       }`}
@@ -210,17 +332,17 @@ function ActionTile({
       <div className="flex flex-col gap-2.5 py-6 px-4 items-center justify-center">
         <span
           className={`w-11 h-11 rounded-xl flex items-center justify-center ${
-            featured ? "bg-white/15" : "bg-brand-50 dark:bg-brand-900/30"
+            featured || danger ? "bg-white/15" : "bg-brand-50 dark:bg-brand-900/30"
           }`}
         >
           <Icon
-            className={`h-6 w-6 ${featured ? "text-white" : "text-brand-600 dark:text-brand-400"}`}
+            className={`h-6 w-6 ${featured || danger ? "text-white" : "text-brand-600 dark:text-brand-400"}`}
             strokeWidth={1.9}
           />
         </span>
         <span
           className={`text-sm font-semibold text-center leading-snug ${
-            featured ? "text-white" : "text-gray-800 dark:text-gray-100"
+            featured || danger ? "text-white" : "text-gray-800 dark:text-gray-100"
           }`}
         >
           {label}

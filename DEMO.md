@@ -25,11 +25,23 @@ Rajan (factory, Coimbatore) · Priya Chatterjee (security) · Suresh Yadav
 1. **Landing → language select** — pick Hindi (i18n across all pages).
 2. **Worker OTP login** — type `9555500101`, press Continue → read the
    6-digit OTP from the **server terminal** and type it into the UI — the
-   website never displays the OTP. Dashboard shows worker ID `SS-100001`.
+   website never displays the OTP. Dashboard shows worker ID `SS-100001` and
+   a QR of that ID (rendered client-side; encodes the ID string only — not a
+   verifiable credential).
 3. **File a grievance** — category "Unpaid wages", add subject/description →
    created with auto `GR-XXXXXXXX` number, **high priority** (category rule)
    and a 14-day **SLA deadline** (shown on the detail page).
-4. **AI assistant** — "Which law fixes minimum wages today?" → grounded
+4. **Wage diary** — dashboard tile "Wage Diary" → log a day's agreed/paid
+   amounts → the summary shows total agreed/paid/unpaid for the month; when
+   something is unpaid a **"File unpaid wage complaint"** button opens the
+   grievance form pre-filled (category unpaid_wages, amount in the
+   subject/description). Entries are self-reported — stated under the list.
+5. **SOS (dashboard-delivery only)** — red SOS tile → the modal states
+   plainly that the alert appears on officials' dashboards and that **no
+   SMS or call is sent** → raise it. Then in the government portal log in as
+   `EKM001` → **SOS Alerts** tab shows the alert with the worker's snapshot;
+   Acknowledge stamps the official (an out-of-district official gets 403).
+6. **AI assistant** — "Which law fixes minimum wages today?" → grounded
    answer citing the **Code on Wages, 2019** (in force 21 Nov 2025) with a
    sources panel (official source URL + verification date) and the
    "informational only, not legal advice" line. Then ask something
@@ -37,27 +49,27 @@ Rajan (factory, Coimbatore) · Priya Chatterjee (security) · Suresh Yadav
    hallucination. Toggle 🔊 (Sarvam/Google TTS speaks the answer) and 🎤
    voice input (Whisper transcribes). Switch the UI to Hindi and ask in
    Hindi — retrieval still grounds the answer.
-5. **Document wallet** — set a PIN (a client-side convenience lock — see
+7. **Document wallet** — set a PIN (a client-side convenience lock — see
    docs/SECURITY.md), upload a PDF, download it back (AES-256-GCM
    encrypted at rest, per-file keys wrapped under `DOC_MASTER_KEY`).
-6. **Government portal — jurisdiction scoping** — log in `EKM001 /
+8. **Government portal — jurisdiction scoping** — log in `EKM001 /
    Ernakulam@123` (district official) → worker list shows only Ernakulam
    workers; try to open a Coimbatore grievance → not found. Now log in
    `ADMIN001 / Admin@123` (superadmin) → Overview shows all 10 workers /
    11+ grievances with category and state charts (Mongo aggregation).
-7. **Send a notification** — Notifications tab → target "occupation:
+9. **Send a notification** — Notifications tab → target "occupation:
    construction" → **only the 2 construction workers** receive it. A
    non-superadmin cannot target "all workers" or another state (403).
-8. **Worker side** — log in as Ramesh → badge shows the new notification →
+10. **Worker side** — log in as Ramesh → badge shows the new notification →
    inbox shows the message (and grievance status updates).
-9. **Audit logs** — back in the portal (superadmin): every login, grievance
+11. **Audit logs** — back in the portal (superadmin): every login, grievance
    action and notification send is recorded with actor, IP and success.
 
 ## Verified by automation
 
 ```bash
-cd server && npm test                 # 40 security/scope tests
-cd server && npm run verify           # 25 end-to-end checks (live services)
+cd server && npm test                 # 50 tests (security/scope + parity)
+cd server && npm run verify           # 32 end-to-end checks (live services)
 cd ai-service && venv/Scripts/python -m pytest   # 35 tests (corpus, RAG, PII, injection)
 ```
 

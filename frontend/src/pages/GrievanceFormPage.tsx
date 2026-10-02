@@ -1,5 +1,5 @@
 import { FormEvent, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Screen } from "../components/Screen";
 import { VoiceRecorder } from "../components/VoiceRecorder";
@@ -22,9 +22,19 @@ export default function GrievanceFormPage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
 
-  const [category, setCategory] = useState<GrievanceCategory>("unpaid_wages");
-  const [subject, setSubject] = useState("");
-  const [description, setDescription] = useState("");
+  // Optional prefill passed via navigate(..., { state }) — e.g. the Wage
+  // Diary's "file unpaid wage complaint" button lands here with a category,
+  // subject and description already filled in.
+  const state = useLocation().state as
+    | { category?: string; subject?: string; description?: string }
+    | null;
+  const prefillCategory = CATEGORIES.includes(state?.category as GrievanceCategory)
+    ? (state?.category as GrievanceCategory)
+    : "unpaid_wages";
+
+  const [category, setCategory] = useState<GrievanceCategory>(prefillCategory);
+  const [subject, setSubject] = useState(state?.subject ?? "");
+  const [description, setDescription] = useState(state?.description ?? "");
   const [employerName, setEmployerName] = useState("");
   const [incidentLocation, setIncidentLocation] = useState("");
   const [incidentDate, setIncidentDate] = useState("");

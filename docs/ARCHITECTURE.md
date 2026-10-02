@@ -31,11 +31,11 @@ Browser ──JWT──► Express (auth → rate limit → route)
 
 | Path | Contents |
 |---|---|
-| `server/src/routes/` | auth, grievances, documents, government, notifications, workers, chat (AI proxy) |
+| `server/src/routes/` | auth, grievances, documents, government, notifications, workers, chat (AI proxy), wages, sos |
 | `server/src/middleware/` | `auth.js` (JWT + liveness cache), `rateLimit.js` |
 | `server/src/utils/` | `scope.js` (jurisdiction), `docKeys.js` (key wrapping), `fileValidation.js`, `audit.js` |
 | `server/src/seed/` | create-only bootstrap admin + demo officials/workers (`SEED_DEMO_DATA`) |
-| `server/tests/` | vitest: 40 security/scope tests (mongodb-memory-server) |
+| `server/tests/` | vitest: 50 tests — 40 security/scope + 10 wage/SOS parity (mongodb-memory-server) |
 | `ai-service/app/services/` | rag_service, translation_service, stt_service (faster-whisper), tts_service (Sarvam/Google), pii |
 | `ai-service/rag/` | `sample_docs/` (curated corpus with provenance headers), `loader.py`, `ingest.py`, FAISS index (generated, gitignored) |
 | `ai-service/tests/` | pytest: corpus integrity, loader, RAG contract, PII, prompt injection |
