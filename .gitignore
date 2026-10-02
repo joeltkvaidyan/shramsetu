@@ -44,5 +44,8 @@ logs/*
 # Stray debug artifacts
 _tok.txt
 
+# Source zips produced for hand-off (git archive output, never commit)
+*.zip
+
 # Local model weights (Whisper, NLLB, IndicTrans2) — never commit
 ai-service/models/
