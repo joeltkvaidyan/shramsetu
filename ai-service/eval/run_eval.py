@@ -249,6 +249,9 @@ def write_report(rows: list[dict], out_path: Path, use_translation: bool, full: 
         "- Prompt-injection handling beyond retrieval (generation-time) is enforced "
         "by the SYSTEM_PROMPT domain rules; see tests/test_prompt_injection.py for "
         "the offline guarantees.",
+        "- This file is REGENERATED on every run and contains numbers only. The "
+        "reasoning, the before/after table and the known limits live in "
+        "ANALYSIS.md in this directory.",
         "",
     ]
     if s["system_errors"]:

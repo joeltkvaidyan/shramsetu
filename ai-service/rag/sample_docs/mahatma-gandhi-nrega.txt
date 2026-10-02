@@ -7,6 +7,15 @@ STATUS: current
 ---
 MGNREGA is a flagship programme of the Government of India that provides legal guarantee for 100 days of wage employment in a financial year to every rural household whose adult members volunteer to do unskilled manual work. It is the world's largest public works programme.
 
+Also known as the Mahatma Gandhi National Rural Employment Guarantee Act, 2005, and as the
+Rural Employment Guarantee Scheme. Scheme names in other scripts, so a worker searching
+in their own language reaches this page:
+- Tamil: ஆதார வேலைவாய்ப்பு திட்டம் (MGNREGA)
+- Hindi: मनरेगा / महात्मा गांधी राष्ट्रीय ग्रामीण रोज़गार गारंटी अधिनियम
+- Telugu: మన్రేగా (రూరల్ ఎంప్లాయ్‌మెంట్ గ్యారంటీ)
+- Malayalam: മന്രേഗ (ഗ്രാമീണ തൊഴിലുറപ്പതരക ഉറപ്പുപ്രതിജ്ഞാ നിയമം)
+- Bengali: মনরেগা (জাতীয় গ্রামীণ কর্মসংস্থান নিশ্চয়তা আইন)
+
 KEY PROVISIONS:
 1. Legal Entitlement: Every rural household has a legal right to 100 days of employment per year.
 2. Work Within 15 Days: Employment must be provided within 15 days of application.

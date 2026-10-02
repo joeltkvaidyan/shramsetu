@@ -61,7 +61,7 @@
 {"id": 61, "lang": "bn", "type": "factual", "question": "পিএম স্বনিধি ঋণের জন্য কারা আবেদন করতে পারবেন?", "expected": ["pm-svanidhi"]}
 {"id": 62, "lang": "bn", "type": "factual", "question": "ক্ষমতাবিহীন শিশুদের নিয়োগ নিয়ে আইন কী বলছে?", "expected": ["child-labour-prohibition"]}
 {"id": 63, "lang": "te", "type": "factual", "question": "స్ట్రీట్ వెండర్ల హక్కులు ఏమిటి? వారిని ఎలా నిర్బంధించలేం?", "expected": ["street-vendors-act"]}
-{"id": 64, "lang": "te", "type": "factual", "question": "కార్మిక కాంకాలిదారుల బంధువూతిరహాంకి పరిహారం ఎంత?", "expected": ["workers-compensation"]}
+{"id": 64, "lang": "te", "type": "factual", "question": "పనిలో ప్రమాదం జరిగితే నా కార్మికుడికి ఏ సాంకేతిక మద్దతు ఉంటుంది?", "expected": ["health-and-safety-workers", "osh-code-2020", "chemical-factory-workers"]}
 {"id": 65, "lang": "ta", "type": "factual", "question": "ஆண் தொழிலாளர்கள் மற்றும் பெண் தொழிலாளர்களுக்கு சம ஊதியம் பற்றி என்ன சட்டம் உள்ளது?", "expected": ["women-workers-rights", "code-on-wages-2019"]}
 {"id": 66, "lang": "ta", "type": "factual", "question": "ஆதார வேலைவாய்ப்பு திட்டத்தின் பயன் என்ன?", "expected": ["mahatma-gandhi-nrega"]}
 {"id": 67, "lang": "ml", "type": "factual", "question": "കുട്ടിയുടെ സ്വതന്ത്ര വീട് വാങ്ങാൻ നടപടികൾ എന്ത്?", "expected": ["pm-awas-yojana-hindi", "pm-awas-yojana"]}
