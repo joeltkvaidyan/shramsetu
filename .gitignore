@@ -49,3 +49,6 @@ _tok.txt
 
 # Local model weights (Whisper, NLLB, IndicTrans2) — never commit
 ai-service/models/
+
+# Translation cache (machine-translated questions; regenerate freely)
+ai-service/.translation_cache.json

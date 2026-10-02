@@ -24,3 +24,10 @@ worker opts out.
 How to claim: The nominee or worker must contact the bank branch where the policy was enrolled, submit
 a claim form along with a death certificate or disability certificate and FIR/post-mortem report (for
 accidental death), and the bank forwards it to the insurance company for settlement.
+
+What this document is NOT: PMSBY is accident insurance only. It does not cover illness, natural death,
+or disability from disease — those need PMJJBY (Pradhan Mantri Jeevan Jyoti Bima) or a health policy.
+The two schemes are separate and both can be held at the same time.
+
+Scheme name in Tamil, for workers searching in their own script:
+பிரதான மந்திரி சுரக்ஷா பீமா யோஜனா (PMSBY) — விபத்து காப்பீட்டு திட்டம்.

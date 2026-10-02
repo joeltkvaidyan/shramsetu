@@ -1,0 +1,13 @@
+{"id": 1, "lang": "en", "type": "factual", "question": "How do I register for e-Shram and is there any fee?", "expected": ["e-shram-portal"]}
+{"id": 5, "lang": "en", "type": "factual", "question": "What is the PM-SYM pension scheme for unorganised workers?", "expected": ["pm-shram-yogi-maandhan"]}
+{"id": 9, "lang": "en", "type": "factual", "question": "Who is eligible for Ayushman Bharat PM-JAY health insurance?", "expected": ["ayushman-bharat-pmjay"]}
+{"id": 13, "lang": "hi", "type": "factual", "question": "प्रधानमंत्री किसान सम्मान निधि क्या है?", "expected": ["pm-kisan-samman-nidhi-hindi", "pm-kisan-samman-nidhi", "pm-kisan"]}
+{"id": 17, "lang": "bn", "type": "factual", "question": "ই-শ্রম পোর্টালে কীভাবে নিবন্ধন করব?", "expected": ["e-shram-portal-bengali", "e-shram-portal"]}
+{"id": 21, "lang": "te", "type": "factual", "question": "ఈ-శ్రమ్ పోర్టల్ అంటే ఏమిటి?", "expected": ["e-shram-portal-telugu", "e-shram-portal"]}
+{"id": 25, "lang": "ta", "type": "factual", "question": "ஈ-ஷ்ரம் போர்ட்டல் என்றால் என்ன?", "expected": ["e-shram-portal-tamil", "e-shram-portal"]}
+{"id": 29, "lang": "ml", "type": "factual", "question": "ഈ-ശ്രം പോർട്ടൽ എന്താണ്?", "expected": ["e-shram-portal-malayalam", "e-shram-portal"]}
+{"id": 52, "lang": "en", "type": "factual", "question": "How much must food delivery platforms contribute to the social security fund?", "expected": ["gig-workers-guidelines"]}
+{"id": 56, "lang": "en", "type": "factual", "question": "How old must a child be before they can legally work, and is it a punishable offence?", "expected": ["child-labour-prohibition"]}
+{"id": 60, "lang": "hi", "type": "factual", "question": "बाल श्रम से कौन सी उम्र के बच्चों को काम पर रखना सख्त मना है?", "expected": ["child-labour-prohibition"]}
+{"id": 64, "lang": "te", "type": "factual", "question": "కార్మిక కాంకాలిదారుల బంధువూతిరహాంకి పరిహారం ఎంత?", "expected": ["workers-compensation"]}
+{"id": 68, "lang": "ml", "type": "factual", "question": "കുടിയേറ്റ തൊഴിലാളികളുടെ ഇപ്പോഴത്തെ പരിശോധനാ കേണ്ടിയിട്ടുള്ള പോർട്ടൽ ഏത്?", "expected": ["e-shram-portal-malayalam", "e-shram-portal"]}

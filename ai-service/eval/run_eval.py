@@ -46,14 +46,21 @@ def _matches(expected, meta) -> bool:
     return False
 
 
-def _retrieve(query: str, k: int = 3):
-    """Mirror of the retrieval stage in rag_service.answer_question."""
-    store = rag_service._get_vector_store()
-    results = store.similarity_search_with_score(query, k=min(k + 5, 10))
-    scored = [(d, rag_service._similarity_from_l2(dist)) for d, dist in results]
-    scored = [p for p in scored if p[1] >= THRESHOLD]
-    scored.sort(key=lambda p: p[1], reverse=True)
-    return rag_service._dedupe_and_rerank(scored, k)
+def _retrieve(query: str, original: str = "", k: int = 3):
+    """Calls the SAME retrieval path production uses.
+
+    This used to re-implement retrieval here (its own FAISS call, threshold
+    and dedupe), which meant the eval could silently drift from the shipped
+    pipeline — it would have scored a system the app no longer runs. It now
+    delegates to rag_service.retrieve_documents so hit@N measures reality.
+
+    `original` is the worker's untranslated question. Production passes it
+    because retrieval lexically ranks on it as well as on the translation
+    (hybrid.py, MULTILINGUAL QUERIES). Omitting it here once scored a system
+    that does not exist, so the two must be called the same way.
+    """
+    ranked, _top_dense = rag_service.retrieve_documents(query, original, top_k=k)
+    return ranked
 
 
 def load_questions(path: Path) -> list[dict]:
@@ -94,7 +101,7 @@ def evaluate(questions: list[dict], use_translation: bool, full: bool) -> dict:
             else:
                 row["refused"] = not payload.get("grounded")
         else:
-            retrieved = _retrieve(retrieval_query)
+            retrieved = _retrieve(retrieval_query, question)
             row["retrieved"] = len(retrieved)
             row["top1"] = retrieved[0][0].metadata.get("source_file") if retrieved else None
             row["top1_sim"] = round(retrieved[0][1], 3) if retrieved else 0.0
@@ -117,8 +124,20 @@ def summarise(rows: list[dict]) -> dict:
     # Unanswerable in-domain questions legitimately pass retrieval (they look
     # on-topic); refusing them is the LLM's grounded flag's job, so we report
     # them separately with their top-1 similarity instead of as "failures".
-    retrieval_refusable = [r for r in rows if r["type"] in ("off_topic", "injection")]
-    unanswerable = [r for r in rows if r["type"] == "unanswerable"]
+    #
+    # System errors are excluded from every rate. This matters: in --full mode
+    # `refused` is `not grounded`, and an API failure (a Groq 429, a dead
+    # translation key) ALSO returns grounded=False. Counting those as refusals
+    # would quietly turn an outage into a perfect safety score, which is the
+    # one thing an eval must never do.
+    retrieval_refusable = [
+        r for r in rows if r["type"] in ("off_topic", "injection") and not r.get("system_error")
+    ]
+    unanswerable = [
+        r for r in rows if r["type"] == "unanswerable" and not r.get("system_error")
+    ]
+    system_errors = sum(1 for r in rows if r.get("system_error"))
+    factual = [r for r in factual if not r.get("system_error")]
     langs = sorted({r["lang"] for r in rows})
     per_lang = {}
     for lang in langs:
@@ -143,6 +162,7 @@ def summarise(rows: list[dict]) -> dict:
         "refusable_n": len(retrieval_refusable),
         "refused": sum(1 for r in retrieval_refusable if r.get("refused")),
         "unanswerable_n": len(unanswerable),
+        "system_errors": system_errors,
         "unanswerable_mean_sim": (
             round(sum(r.get("top1_sim", 0.0) for r in unanswerable) / len(unanswerable), 3)
             if unanswerable else None
@@ -175,10 +195,17 @@ def write_report(rows: list[dict], out_path: Path, use_translation: bool, full: 
         f"| Off-topic + injection (refused at retrieval) | {s['refused']}/{s['refusable_n']} = {_pct(s['refused'], s['refusable_n'])} |",
         f"| Unanswerable in-domain questions | {s['unanswerable_n']} |",
         f"| Unanswerable: mean top-1 similarity | {s['unanswerable_mean_sim']} |",
+        f"| System errors (excluded from all rates above) | {s['system_errors']} |",
         "",
         "Unanswerable in-domain questions are expected to pass retrieval (they look "
         "on-topic); the LLM's grounded flag is what refuses them. Their mean "
         "similarity shows how close they sit to genuine hits — the LLM must decide.",
+        "",
+        "System errors are excluded from every rate above and counted on their own "
+        "line. In --full mode an API failure returns `grounded=False`, the same "
+        "signal a refusal returns, so errors must never be scored as successes or "
+        "as refusals. A non-zero count here means the run was degraded (rate limit, "
+        "dead API key) and its rates describe only the questions that completed.",
         "",
         "## Per-language breakdown",
         "",
@@ -224,8 +251,43 @@ def write_report(rows: list[dict], out_path: Path, use_translation: bool, full: 
         "the offline guarantees.",
         "",
     ]
+    if s["system_errors"]:
+        lines.append(
+            f"- {s['system_errors']} question(s) hit a system error (rate limit or dead API "
+            "key) and were EXCLUDED from the rates above. Re-run when the quota resets."
+        )
     out_path.write_text("\n".join(lines), encoding="utf-8")
     print(f"Wrote {out_path}")
+    if s["system_errors"]:
+        print(
+            f"WARNING: {s['system_errors']} system error(s) excluded from all rates "
+            "(an API failure returns grounded=False, the same signal as a refusal)",
+            file=sys.stderr,
+        )
+
+
+def check_expected_documents_are_indexable(questions: list[dict]) -> list[str]:
+    """Warn when a factual question expects a document that cannot be retrieved.
+
+    A question whose `expected` names only documents marked
+    STATUS: superseded can NEVER pass: the loader deliberately skips superseded
+    documents so a repealed Act never feeds the chatbot. Two questions added
+    while expanding this file were silently unanswerable for exactly that
+    reason, and an unanswerable question looks identical to a retrieval bug in
+    the report. Checking it up front keeps the distinction visible.
+    """
+    from rag.loader import load_all_documents
+
+    indexed = {p.filename for p in load_all_documents("rag/sample_docs")}
+    return [
+        f"#{q['id']} expects only superseded/absent documents: {q['expected']}"
+        for q in questions
+        if q.get("type") == "factual"
+        and q.get("expected")
+        and not any(
+            any(e in f for f in indexed) for e in q["expected"]
+        )
+    ]
 
 
 def main() -> None:
@@ -237,6 +299,8 @@ def main() -> None:
     args = ap.parse_args()
 
     questions = load_questions(Path(args.questions))
+    for warning in check_expected_documents_are_indexable(questions):
+        print(f"WARNING: {warning}", file=sys.stderr)
     print(f"Loaded {len(questions)} questions")
 
     from rag.loader import load_all_documents

@@ -261,6 +261,103 @@ def _similarity_from_l2(distance: float) -> float:
     return max(0.0, min(1.0, 1.0 / (1.0 + distance)))
 
 
+_bm25 = None
+
+
+def _get_bm25():
+    """Lazily build the BM25 index over the same chunks FAISS indexed.
+
+    Returns None (once) if the lexical index cannot be built — retrieval then
+    runs dense-only rather than failing. The failure is cached so a broken
+    build isn't retried on every question.
+    """
+    global _bm25
+    if _bm25 is None:
+        from rag import hybrid
+
+        try:
+            _bm25 = hybrid.build_from_store(_get_vector_store())
+            logger.info("BM25 lexical index built over %d chunks", len(_bm25._keys))
+        except Exception:
+            logger.exception(
+                "BM25 lexical index unavailable — falling back to dense-only retrieval"
+            )
+            _bm25 = False
+    return _bm25 or None
+
+
+def retrieve_documents(
+    retrieval_query: str,
+    question: str = "",
+    top_k: int | None = None,
+) -> tuple[list[tuple], float]:
+    """THE retrieval path — production and the eval harness both call this.
+
+    Returns (ranked [(doc, dense_similarity)], top_dense_similarity).
+
+    Order of operations, and why:
+      1. Pull a wide candidate pool from FAISS. The old k was 8, which was
+         small enough that the correct scheme document for some entity
+         queries never reached the window at all.
+      2. Gate on dense similarity. This is the refusal mechanism: off-topic
+         and prompt-injection questions land here and get no answer.
+      3. Rerank the survivors with BM25 fused by RRF. BM25 fixes entity-name
+         queries; it CANNOT add a document, only reorder the gated ones.
+         It runs over BOTH the English translation and the worker's original
+         question as independent rankers — see hybrid.py's MULTILINGUAL
+         QUERIES note for why dropping the original costs every Indic question.
+      4. Deduplicate overlapping chunks of the same source.
+
+    The dense similarity is returned untouched alongside the ranking, because
+    that is what the UI reports as confidence — a lexical rerank must not
+    inflate it.
+    """
+    top_k = top_k or settings.RAG_TOP_K
+    store = _get_vector_store()
+    pool_k = min(max(top_k * 3, 12), 24)
+    results = store.similarity_search_with_score(retrieval_query, k=pool_k)
+
+    scored = [(doc, _similarity_from_l2(dist)) for doc, dist in results]
+    threshold = max(settings.RAG_MIN_SIMILARITY, 0.20)
+    scored = [pair for pair in scored if pair[1] >= threshold]
+    if not scored:
+        return [], 0.0
+
+    scored.sort(key=lambda p: p[1], reverse=True)
+    top_dense = scored[0][1]
+
+    try:
+        from rag import hybrid
+
+        bm25 = _get_bm25()
+        if bm25:
+            # The translation is what the dense retriever searched, so it is
+            # the query that carries entity names ("PM Suraksha Bima"). The
+            # original question carries the script, which is the only thing
+            # that distinguishes the Hindi/Tamil/Telugu/... siblings of a
+            # document. Rank with both; drop the duplicate when no translation
+            # happened (English question) so the ranker isn't counted twice.
+            queries = [retrieval_query]
+            original = (question or "").strip()
+            if original and original != retrieval_query:
+                queries.append(original)
+            fused = hybrid.fuse(
+                [doc for doc, _ in scored], [bm25.scores(q) for q in queries]
+            )
+        else:
+            fused = None
+    except Exception:
+        logger.exception("BM25 fusion failed; falling back to dense order")
+        fused = None
+
+    if fused is not None:
+        order = sorted(range(len(scored)), key=lambda i: fused.get(i, 0.0), reverse=True)
+        scored = [scored[i] for i in order]
+
+    ranked = _dedupe_and_rerank(scored, top_k)
+    return ranked, top_dense
+
+
 def answer_question(question: str, language: str = "en") -> dict:
     language = (language or "en").split("-", 1)[0].lower()
 
@@ -281,37 +378,15 @@ def answer_question(question: str, language: str = "en") -> dict:
         return _error_response(language)
 
     try:
-        # Retrieve more documents for better context
-        results = store.similarity_search_with_score(retrieval_query, k=min(settings.RAG_TOP_K + 2, 8))
+        retrieved, top_score = retrieve_documents(retrieval_query, question)
     except Exception:
         logger.exception("Retrieval failed for question: %r", question)
         return _error_response(language)
 
-    if not results:
+    if not retrieved:
         return _no_info_response(language)
 
-    # Convert distances -> similarity-like scores
-    scored = [(doc, _similarity_from_l2(dist)) for doc, dist in results]
-
-    # Use a lower threshold — the LLM will decide if context is sufficient
-    threshold = max(settings.RAG_MIN_SIMILARITY, 0.20)
-    scored = [pair for pair in scored if pair[1] >= threshold]
-
-    if not scored:
-        return _no_info_response(language)
-
-    scored.sort(key=lambda p: p[1], reverse=True)
-    top_doc, top_score = scored[0]
-    # Deduplicate overlapping chunks, then keep the top-k for the prompt —
-    # with a light lexical-overlap nudge so near-tied candidates are ordered
-    # by question-term coverage. The lexical overlap is computed against the
-    # original question (not the translated one) so an Indic question can
-    # still tie-break against chunks that quote Indic terms.
-    retrieved = _dedupe_and_rerank(scored, settings.RAG_TOP_K)
-    retrieved.sort(
-        key=lambda p: (p[1] + 0.05 * _lexical_overlap(question, p[0].page_content)),
-        reverse=True,
-    )
+    top_doc = retrieved[0][0]
     context = _format_context(retrieved)
 
     try:

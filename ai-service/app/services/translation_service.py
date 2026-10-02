@@ -36,8 +36,11 @@ Design notes:
 """
 from __future__ import annotations
 
+import hashlib
+import json
 import logging
 import threading
+from pathlib import Path
 
 from app.core.config import settings
 
@@ -421,6 +424,61 @@ def prewarm() -> None:
     threading.Thread(target=_load, name="it2-prewarm", daemon=True).start()
 
 
+# ---------------------------------------------------------------------------
+# Translation cache
+# ---------------------------------------------------------------------------
+# Machine translation is the slowest part of an Indic request (a local engine
+# costs seconds per question) and, when the cloud keys are dead and the local
+# IndicTrans2 fallback is used, it is NOT deterministic run to run. That made
+# the eval wobble by a hit or two between runs on the same unchanged code, which
+# is indefensible in a report. Caching makes a question translate once, ever,
+# so repeated runs are byte-identical and a 70-question eval stops paying for
+# translation at all.
+#
+# Two layers: a dict for this process, and a gitignored JSON file on disk so a
+# re-run (or the eval) reuses yesterday's translations.
+_MEM_CACHE: dict[str, str] = {}
+_CACHE_FILE = Path(__file__).resolve().parents[2] / ".translation_cache.json"
+
+
+def _cache_key(question: str, lang: str) -> str:
+    return hashlib.sha256(f"{lang}\x00{question.strip()}".encode("utf-8")).hexdigest()
+
+
+def _cache_load() -> dict[str, str]:
+    if not _CACHE_FILE.exists():
+        return {}
+    try:
+        data = json.loads(_CACHE_FILE.read_text(encoding="utf-8"))
+        return data if isinstance(data, dict) else {}
+    except Exception:
+        # A corrupt cache must never break the service; it is a cache.
+        return {}
+
+
+def _cache_get(key: str) -> str | None:
+    if key in _MEM_CACHE:
+        return _MEM_CACHE[key]
+    disk = _cache_load()
+    value = disk.get(key)
+    if isinstance(value, str) and value.strip():
+        _MEM_CACHE[key] = value
+        return value
+    return None
+
+
+def _cache_put(key: str, value: str) -> None:
+    _MEM_CACHE[key] = value
+    try:
+        disk = _cache_load()
+        disk[key] = value
+        _CACHE_FILE.write_text(
+            json.dumps(disk, ensure_ascii=False, indent=0), encoding="utf-8"
+        )
+    except Exception:
+        logger.debug("could not persist translation cache", exc_info=True)
+
+
 def translate_to_english(question: str, language: str | None = None) -> tuple[str, bool]:
     """Translate an Indic question to English for retrieval.
 
@@ -433,6 +491,12 @@ def translate_to_english(question: str, language: str | None = None) -> tuple[st
     lang = _LANG_ALIASES.get(lang, lang)
     if not question or not question.strip() or not _is_indic(lang):
         return question, False
+
+    cache_key = _cache_key(question, lang)
+    cached = _cache_get(cache_key)
+    if cached:
+        logger.debug("translate %s->en (cache): %r", lang, cached[:60])
+        return cached, True
 
     # Walk the chain in order; a mid-request failure of one engine (e.g. the
     # cloud call erroring) falls through to the next instead of giving up.
@@ -457,6 +521,7 @@ def translate_to_english(question: str, language: str | None = None) -> tuple[st
             if not translated:
                 continue
             logger.info("translate %s->en (%s): %r -> %r", lang, engine, question[:60], translated[:60])
+            _cache_put(cache_key, translated)
             return translated, True
         except Exception as exc:
             # One line, no traceback: a cloud MT hiccup is an expected fall-

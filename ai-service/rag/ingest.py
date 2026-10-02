@@ -40,7 +40,14 @@ def build_index() -> FAISS:
         for i, chunk in enumerate(chunk_text(doc.body)):
             lc_documents.append(
                 LCDocument(
-                    page_content=chunk,
+                    # The TITLE is prepended so it is embedded AND lexically
+                    # searchable. FAISS only sees page_content, so without this
+                    # a query like "What is PM Suraksha Bima Yojana?" could not
+                    # match a document actually titled "PM Suraksha Bima
+                    # Yojana" — the scheme name in the heading was invisible to
+                    # retrieval. The title line also reaches the LLM as part of
+                    # the context, which grounds the answer in the source name.
+                    page_content=f"{doc.title}\n{chunk}",
                     metadata={
                         "title": doc.title,
                         "department": doc.department,
