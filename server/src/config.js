@@ -45,7 +45,13 @@ export const config = {
   maxUploadMb: int(process.env.MAX_UPLOAD_MB, 10),
 
   aiServiceUrl: process.env.AI_SERVICE_URL || "http://127.0.0.1:8100",
-  aiTimeoutMs: int(process.env.AI_TIMEOUT_MS, 60000),
+  // Budget for one Node→AI call. A warm /ask answers in ~1-2s, but the first
+  // one after a service restart can legitimately spend a minute loading the
+  // embedding model, FAISS index and (for Indic voice) Whisper on a 4-core
+  // box. 60s aborted those mid-load and surfaced as "ai-service unavailable:
+  // This operation was aborted", so the budget is generous on purpose; the UI
+  // already shows a thinking state for the wait.
+  aiTimeoutMs: int(process.env.AI_TIMEOUT_MS, 120000),
   // Shared secret sent as X-Internal-Key on every Node→AI call. Empty in dev
   // (AI service accepts unauthenticated /ask,/speak,/transcribe only when
   // AI_INTERNAL_KEY is unset on ITS side too).

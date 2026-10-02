@@ -89,6 +89,11 @@ async def guard_middleware(request: Request, call_next):
 
     return await call_next(request)
 
+# Prewarm the RAG pipeline FIRST. Embeddings + FAISS are the heavy local part
+# of every /ask; warming them ahead of the STT/translation models is what keeps
+# the first question after a restart inside the Node proxy's abort window.
+rag_service.prewarm()
+
 # TTS is cloud-only now (Sarvam -> Google): nothing to preload at boot.
 
 # Same idea for IndicTrans2: load + int8-quantize at boot in a background

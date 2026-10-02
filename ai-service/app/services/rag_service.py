@@ -86,6 +86,35 @@ def _get_llm():
     return _llm
 
 
+def prewarm() -> None:
+    """Load the embedding model + FAISS index in a background thread at boot.
+
+    These are the heavy local half of every /ask. Loading them lazily meant the
+    FIRST question after a restart paid the whole cost — and because the
+    whisper and translation models were also loading at boot on a 4-core box,
+    that first request overran the Node proxy's abort window and surfaced as
+    "ai-service unavailable: This operation was aborted". Warming RAG first
+    makes it the last thing still loading when the first user hits chat.
+    """
+    import threading
+    import time
+
+    def _load() -> None:
+        try:
+            started = time.time()
+            _get_embeddings()
+            _get_vector_store()
+            logger.info(
+                "RAG prewarmed (embeddings=%s + FAISS index) in %.1fs",
+                settings.EMBEDDING_MODEL,
+                time.time() - started,
+            )
+        except Exception:
+            logger.exception("RAG prewarm failed (will retry on first request)")
+
+    threading.Thread(target=_load, name="rag-prewarm", daemon=True).start()
+
+
 # --- Language names for the system prompt ---
 LANG_NAMES = {
     "en": "English",
