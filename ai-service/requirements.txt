@@ -37,5 +37,5 @@ sacremoses==0.2.0
 indic-nlp-library==0.92
 sentencepiece==0.2.2
 
-# Optional: uncomment when REDIS_URL is set for multi-instance rate limiting
-# redis>=5.0
+# (No Redis: the AI service rate limiter is per-process and in-memory — see
+# AI_RATE_LIMIT_PER_MIN. Multi-instance deployments would need a shared store.)

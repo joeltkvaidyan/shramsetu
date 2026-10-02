@@ -101,7 +101,10 @@ cd ai-service
 ./venv/Scripts/python.exe -m uvicorn main:app --host 127.0.0.1 --port 8100   # Windows
 #   venv/bin/python -m uvicorn main:app --host 127.0.0.1 --port 8100          # macOS/Linux
 
-# 3) Frontend → http://localhost:5199
+# 3) Frontend → http://localhost:5173
+#    (vite.config.ts sets port 5173. It serves HTTPS instead when a dev
+#     certificate exists in frontend/.certs/ — see "Run it" above.)
+#    start-all.ps1 deliberately runs it on :5199 (HTTP) and :5443 (HTTPS).
 cd frontend
 npm install
 npm run dev
