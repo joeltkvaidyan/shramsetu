@@ -6,7 +6,7 @@ import { BottomNav } from "../components/BottomNav";
 import { api, apiErrorMessage } from "../api/client";
 import { Button, Card, ConfirmDialog, Modal, SkeletonList, Badge, EmptyState } from "../components/ui";
 import { InputField } from "../components/InputField";
-import { cacheDocument, getCachedDocument, removeCachedDocument, clearAllCachedDocuments } from "../services/documentCache";
+import { cacheDocument, getCachedDocument, getCachedDocumentIds, removeCachedDocument, clearAllCachedDocuments } from "../services/documentCache";
 import {
   isPinSet,
   setPin,
@@ -698,8 +698,11 @@ function DocumentCard({
   );
 }
 
-// ── Helper lazy imports for offline cache ────────────────────────────
+// ── Offline cache helper ──────────────────────────────────────────────
+// documentCache is already imported statically at the top of this file, so
+// this used to re-import it dynamically, which Vite flags: the module is in
+// the static graph anyway, so the dynamic import cannot move it into its own
+// chunk and only confused the bundler.
 async function cacheIds(): Promise<number[]> {
-  const { getCachedDocumentIds } = await import("../services/documentCache");
   return getCachedDocumentIds();
 }

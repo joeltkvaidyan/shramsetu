@@ -25,6 +25,36 @@ export default defineConfig({
   resolve: {
     dedupe: ["react", "react-dom"],
   },
+  build: {
+    rollupOptions: {
+      output: {
+        // Split the framework out of the page chunks. React, the router and the
+        // i18n runtime change on a dependency bump, not on a page edit, so
+        // keeping them in their own long-lived chunk means a content change does
+        // not invalidate 200 kB of framework for returning visitors.
+        manualChunks(id: string) {
+          if (!id.includes("node_modules")) return undefined;
+          if (/[\\/]node_modules[\\/](react|react-dom|react-router|react-router-dom|scheduler)[\\/]/.test(id)) {
+            return "react-vendor";
+          }
+          if (/[\\/]node_modules[\\/](i18next|react-i18next|i18next-browser-languagedetector|http-negotiator)[\\/]/.test(id)) {
+            return "i18n-vendor";
+          }
+          // axios and nothing else. It is on the startup path (the auth context
+          // reads the stored token through api/client), so it needs its own
+          // chunk. Everything else used to be lumped in here too -- lucide's
+          // icon set, idb, qrcode, workbox -- and because Vite modulepreloads the
+          // whole chunk, the language screen downloaded ~88 kB of libraries it
+          // never calls. Those are left to Rollup, which puts them in the page
+          // chunk that actually uses them.
+          if (/[\\/]node_modules[\\/]axios[\\/]/.test(id)) {
+            return "http-vendor";
+          }
+          return undefined;
+        },
+      },
+    },
+  },
   optimizeDeps: {
     include: ["react", "react-dom", "react-router-dom", "react-i18next", "i18next"],
   },

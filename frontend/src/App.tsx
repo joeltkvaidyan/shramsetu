@@ -1,23 +1,30 @@
+import { Suspense, lazy } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-import LanguageSelectPage from "./pages/LanguageSelectPage";
-import StakeholderSelectPage from "./pages/StakeholderSelectPage";
-import ComingSoonPage from "./pages/ComingSoonPage";
-import WorkerLoginPage from "./pages/WorkerLoginPage";
-import WorkerRegisterPage from "./pages/WorkerRegisterPage";
-import WorkerDashboardPage from "./pages/WorkerDashboardPage";
-import DocumentWalletPage from "./pages/DocumentWalletPage";
-import ChatbotPage from "./pages/ChatbotPage";
-import SettingsPage from "./pages/SettingsPage";
-import GrievanceListPage from "./pages/GrievanceListPage";
-import GrievanceFormPage from "./pages/GrievanceFormPage";
-import WageLogPage from "./pages/WageLogPage";
 import { getGovToken } from "./api/client";
-import GrievanceDetailPage from "./pages/GrievanceDetailPage";
-import GovernmentLoginPage from "./pages/GovernmentLoginPage";
-import NotificationInboxPage from "./pages/NotificationInboxPage";
-import GovernmentDashboardPage from "./pages/GovernmentDashboardPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { PageFallback } from "./components/PageFallback";
+
+// Every page is split into its own chunk. Statically importing all 16 made one
+// 592 kB bundle that every visitor downloaded before seeing anything, including
+// the government dashboard that most visitors never open. The language screen —
+// the actual landing page — now costs only the shared vendor chunk.
+const LanguageSelectPage = lazy(() => import("./pages/LanguageSelectPage"));
+const StakeholderSelectPage = lazy(() => import("./pages/StakeholderSelectPage"));
+const ComingSoonPage = lazy(() => import("./pages/ComingSoonPage"));
+const WorkerLoginPage = lazy(() => import("./pages/WorkerLoginPage"));
+const WorkerRegisterPage = lazy(() => import("./pages/WorkerRegisterPage"));
+const WorkerDashboardPage = lazy(() => import("./pages/WorkerDashboardPage"));
+const DocumentWalletPage = lazy(() => import("./pages/DocumentWalletPage"));
+const ChatbotPage = lazy(() => import("./pages/ChatbotPage"));
+const SettingsPage = lazy(() => import("./pages/SettingsPage"));
+const GrievanceListPage = lazy(() => import("./pages/GrievanceListPage"));
+const GrievanceFormPage = lazy(() => import("./pages/GrievanceFormPage"));
+const GrievanceDetailPage = lazy(() => import("./pages/GrievanceDetailPage"));
+const WageLogPage = lazy(() => import("./pages/WageLogPage"));
+const GovernmentLoginPage = lazy(() => import("./pages/GovernmentLoginPage"));
+const NotificationInboxPage = lazy(() => import("./pages/NotificationInboxPage"));
+const GovernmentDashboardPage = lazy(() => import("./pages/GovernmentDashboardPage"));
 
 function GovernmentRoute({ children }: { children: React.ReactNode }) {
   const token = getGovToken();
@@ -28,6 +35,7 @@ function GovernmentRoute({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <ErrorBoundary>
+    <Suspense fallback={<PageFallback />}>
     <Routes>
       {/* Public routes */}
       <Route path="/" element={<LanguageSelectPage />} />
@@ -89,6 +97,7 @@ export default function App() {
       {/* Catch-all */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </Suspense>
     </ErrorBoundary>
   );
 }
