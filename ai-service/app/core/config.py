@@ -60,6 +60,11 @@ class Settings(BaseSettings):
     WHISPER_MODEL_SIZE: str = "small"
     WHISPER_DEVICE: str = "cpu"        # "cpu" or "cuda"
     WHISPER_COMPUTE_TYPE: str = "int8"  # int8 = fast CPU inference
+    # Larger model used ONLY for non-English requests. Malayalam/Tamil are
+    # where `small` collapses into repeated-syllable garbage, so they get the
+    # stronger model (lazy-loaded, cached alongside the base one). Empty =
+    # every language uses WHISPER_MODEL_SIZE.
+    WHISPER_INDIC_MODEL: str = ""
     # Max audio accepted at /transcribe (MB) — bounds CPU time and memory.
     MAX_AUDIO_MB: int = 15
 
@@ -84,6 +89,10 @@ class Settings(BaseSettings):
     # requests. Set TRANSLATION_QUANTIZE=false to keep full fp32 weights.
     TRANSLATION_QUANTIZE: bool = True
     TRANSLATION_FALLBACK_MODEL: str = "facebook/nllb-200-distilled-600M"
+    # HTTP read timeout (seconds) for cloud translation calls. Sarvam MT
+    # regularly exceeds 10s on a cold connection and a timeout costs the whole
+    # per-request latency budget before the chain can fall through.
+    TRANSLATE_HTTP_TIMEOUT: int = 20
     TRANSLATION_ENABLED: bool = True
     # Which engine to use: "auto" = IndicTrans2 when loadable (license
     # accepted + HF token), else NLLB fallback. "indictrans2" / "nllb" force

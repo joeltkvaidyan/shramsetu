@@ -23,8 +23,19 @@ from app.core.config import settings
 
 logger = logging.getLogger("shramsetu.stt")
 
-_local_model = None  # lazy-loaded faster-whisper model (process-wide singleton)
+# Lazy-loaded faster-whisper models, keyed by size (process-wide cache). Two
+# sizes can be resident at once: the general model plus WHISPER_INDIC_MODEL
+# for the languages the general model handles badly.
+_local_models: dict[str, object] = {}
 _model_lock = threading.Lock()
+
+# Surfaced to the worker as HTTP 503 when no decoding pass produced a usable
+# transcript. Returning Whisper's repetition garbage is worse than asking the
+# worker to try again — garbage used to be translated and fed to retrieval.
+UNUSABLE_AUDIO_MESSAGE = (
+    "The recording was too unclear to transcribe. Please speak a little louder, "
+    "closer to the microphone, and try again."
+)
 
 # Short prompts provide vocabulary hints without biasing Whisper toward a
 # sentence that the speaker did not say.
@@ -104,52 +115,71 @@ def _is_degenerate(text: str) -> bool:
     return False
 
 
-def _get_local_model():
-    """Lazy-load faster-whisper once per process, thread-safely. The first
-    call loads the model from the local Hugging Face cache (no download)."""
-    global _local_model
-    if _local_model is None:
+def _get_local_model(model_size: str | None = None):
+    """Lazy-load faster-whisper once per model size, thread-safely. The first
+    load of each size comes from the local Hugging Face cache (no download)."""
+    size = model_size or settings.WHISPER_MODEL_SIZE
+    model = _local_models.get(size)
+    if model is None:
         with _model_lock:
-            if _local_model is None:
+            model = _local_models.get(size)
+            if model is None:
                 from faster_whisper import WhisperModel
 
                 logger.info(
                     "Loading faster-whisper model=%s device=%s compute=%s",
-                    settings.WHISPER_MODEL_SIZE,
+                    size,
                     settings.WHISPER_DEVICE,
                     settings.WHISPER_COMPUTE_TYPE,
                 )
-                _local_model = WhisperModel(
-                    settings.WHISPER_MODEL_SIZE,
+                model = WhisperModel(
+                    size,
                     device=settings.WHISPER_DEVICE,
                     compute_type=settings.WHISPER_COMPUTE_TYPE,
                 )
-    return _local_model
+                _local_models[size] = model
+    return model
+
+
+def _model_for(language: str | None):
+    """Pick the model for one request: the stronger Indic model for non-English
+    languages when one is configured, otherwise the general model."""
+    if language and language != "en" and settings.WHISPER_INDIC_MODEL:
+        return _get_local_model(settings.WHISPER_INDIC_MODEL)
+    return _get_local_model()
 
 
 def prewarm() -> None:
-    """Load the model in a background thread at boot so the first voice query
-    doesn't pay the cold model load (large-v3-turbo int8 loads in ~10-20s on
-    this machine)."""
-    def _load() -> None:
+    """Load the model(s) in background threads at boot so the first voice query
+    doesn't pay the cold model load — a medium/large model on CPU needs 20-40s,
+    which would otherwise blow the proxy timeout on the first Malayalam query."""
+
+    def _load(size: str | None = None) -> None:
         try:
-            _get_local_model()
+            _get_local_model(size)
             logger.info(
                 "faster-whisper prewarmed (%s/%s) — STT is fully local",
-                settings.WHISPER_MODEL_SIZE,
+                size or settings.WHISPER_MODEL_SIZE,
                 settings.WHISPER_COMPUTE_TYPE,
             )
         except Exception:
             logger.exception("faster-whisper prewarm failed (will retry on first request)")
 
     threading.Thread(target=_load, name="whisper-prewarm", daemon=True).start()
+    if settings.WHISPER_INDIC_MODEL:
+        threading.Thread(
+            target=_load,
+            args=(settings.WHISPER_INDIC_MODEL,),
+            name="whisper-prewarm-indic",
+            daemon=True,
+        ).start()
 
 
 def _transcribe_local(file_bytes: bytes, filename: str, whisper_language: str | None) -> str:
     """faster-whisper accepts any ffmpeg-readable container (webm/opus from
     MediaRecorder, wav, mp3, m4a...). VAD filtering drops silence/hallucinated
     repeats that pure-Whisper models emit on quiet clips."""
-    model = _get_local_model()
+    model = _model_for(whisper_language)
     prompt = _CONTEXT_PROMPTS.get(whisper_language or "", _CONTEXT_PROMPTS["en"])
 
     import tempfile
@@ -161,7 +191,7 @@ def _transcribe_local(file_bytes: bytes, filename: str, whisper_language: str | 
         tmp_path = tmp.name
 
     try:
-        def _run(lang: str | None, prompt_text: str) -> tuple[str, object]:
+        def _decode(lang: str | None, prompt_text: str, beam_size: int) -> tuple[str, object]:
             segments, info = model.transcribe(
                 tmp_path,
                 language=lang,
@@ -173,37 +203,65 @@ def _transcribe_local(file_bytes: bytes, filename: str, whisper_language: str | 
                 # (error propagation was feeding Whisper its own hallucinated
                 # repeats back as context, degrading accuracy).
                 condition_on_previous_text=False,
-                # Greedy decoding: beam_size=1 is ~2x faster on CPU than the
-                # default beam of 5 with no practical accuracy loss for short
-                # voice queries.
-                beam_size=1,
+                beam_size=beam_size,
             )
             return " ".join(seg.text.strip() for seg in segments).strip(), info
 
-        # Single auto-detect pass in the common case. Forced-language decoding
-        # produced degenerate repeats whenever the worker spoke a language
-        # different from the UI selection. Auto-detect handles BOTH cases
-        # correctly in one pass. The detect pass always uses the English-domain
-        # prompt: prompting with the REQUESTED language's script biased
-        # detection toward that language even when the audio was a different
-        # one.
-        text, info = _run(None, _CONTEXT_PROMPTS["en"])
+        def _usable(candidate: str) -> bool:
+            """Worth returning: not degenerate repetition AND written in the
+            requested language's script."""
+            if _is_degenerate(candidate):
+                return False
+            return not _script_mismatch(candidate, whisper_language or "")
 
-        # Guard: only when output is broken (degenerate, or decoded into the
-        # wrong script — Hindi audio coming back as Urdu) AND we were asked
-        # for a specific language do we pay for one forced retry.
-        if whisper_language and (_is_degenerate(text) or _script_mismatch(text, whisper_language)):
+        # Pass ladder. Each entry is (language, prompt, beam_size, label); the
+        # first pass that yields a USABLE transcript wins, otherwise we refuse.
+        #
+        # With the stronger Indic model the forced+beam pass goes FIRST: it is
+        # both the most accurate and the most expensive decode, so running the
+        # cheap greedy detect pass before it doubled the latency of every
+        # Malayalam/Tamil query (measured 116s -> 19s by reordering).
+        indic_active = bool(whisper_language and settings.WHISPER_INDIC_MODEL)
+        attempts: list[tuple[str | None, str, int, str]] = []
+        if indic_active:
+            attempts.append((whisper_language, prompt, 5, "forced-beam"))
+        attempts.append((None, _CONTEXT_PROMPTS["en"], 1, "detect"))
+        if whisper_language and not indic_active:
+            attempts.append((whisper_language, prompt, 5, "forced-beam"))
+
+        text = ""
+        info = None
+        pass_used = attempts[0][3]
+        for lang, prompt_text, beam, label in attempts:
+            text, info = _decode(lang, prompt_text, beam)
+            pass_used = label
+            if _usable(text):
+                break
             logger.warning(
-                "whisper(local) auto-detect produced bad output %r — retrying forced lang=%s",
+                "whisper(local) pass=%s unusable (detected=%s prob=%.2f text=%r)",
+                label,
+                getattr(info, "language", "?"),
+                getattr(info, "language_probability", 0.0),
                 text[:40],
-                whisper_language,
             )
-            text, info = _run(whisper_language, prompt)
+        else:
+            # Every pass produced garbage. The previous code returned it
+            # verbatim, so repeated syllables like 'ക്രാക്ക്ക്...' were
+            # translated and then used as a retrieval query — which is how
+            # "The translation of the given Malayalam text to English is:"
+            # ended up as a search query.
+            logger.warning(
+                "whisper(local) all %d pass(es) unusable — refusing to return garbage",
+                len(attempts),
+            )
+            raise RuntimeError(UNUSABLE_AUDIO_MESSAGE)
+
         logger.info(
-            "whisper(local) requested=%s detected=%s prob=%.2f text=%r",
+            "whisper(local) requested=%s detected=%s prob=%.2f pass=%s text=%r",
             whisper_language,
-            info.language,
-            info.language_probability,
+            getattr(info, "language", "?"),
+            getattr(info, "language_probability", 0.0),
+            pass_used,
             text[:80],
         )
         return text

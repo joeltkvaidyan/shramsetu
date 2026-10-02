@@ -106,7 +106,7 @@ def _translate_sarvam(texts: list[str], src_iso: str) -> list[str]:
                 "target_language_code": "en-IN",
                 "model": "sarvam-translate:v1",
             },
-            timeout=10,
+            timeout=settings.TRANSLATE_HTTP_TIMEOUT,
         )
         response.raise_for_status()
         body = response.json()
@@ -138,12 +138,11 @@ def _translate_google(texts: list[str], src_iso: str) -> list[str]:
         params={"key": key},
         json={
             "q": texts,
-            "source": src_iso,
-            "target": "en",
-            "format": "text",
-        },
-        timeout=10,
-    )
+            "source": src_iso,                "target": "en",
+                "format": "text",
+            },
+            timeout=settings.TRANSLATE_HTTP_TIMEOUT,
+        )
     response.raise_for_status()
     translations = (response.json().get("data") or {}).get("translations") or []
     if len(translations) != len(texts):
@@ -459,7 +458,14 @@ def translate_to_english(question: str, language: str | None = None) -> tuple[st
                 continue
             logger.info("translate %s->en (%s): %r -> %r", lang, engine, question[:60], translated[:60])
             return translated, True
-        except Exception:
-            logger.warning("translation engine %r failed; trying next in chain", engine, exc_info=True)
-    logger.exception("All translation engines failed; using original question")
+        except Exception as exc:
+            # One line, no traceback: a cloud MT hiccup is an expected fall-
+            # through, not a crash. The chain has local fallbacks behind it.
+            logger.warning(
+                "translation engine %r failed (%s: %s); trying next in chain",
+                engine,
+                type(exc).__name__,
+                str(exc)[:120],
+            )
+    logger.warning("All translation engines failed; using the original question untranslated")
     return question, False
