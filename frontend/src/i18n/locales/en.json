@@ -307,8 +307,9 @@
     },
     "empty": "No wage entries for this month yet.",
     "fileGrievance": "File unpaid wage complaint",
-    "grievanceSubject": "Unpaid wages: {{amount}} pending",
-    "grievanceDescription": "As per my wage diary, {{amount}} of my agreed wages remain unpaid (period: {{period}}, {{days}} day(s) logged). I have not received the full agreed wages for this work. Please help me recover the pending amount.",
+    "grievanceSubject": "Unpaid wages: {amount} pending",
+    "grievanceDescription": "As per my wage diary, {amount} of my agreed wages remain unpaid for {days} day(s) of work in {period}. Unpaid work dates: {dates}. I have not received the full agreed wages for this work. Please help me recover the pending amount.",
+    "fileForDate": "File a complaint for {date}",
     "last90Days": "last 90 days",
     "selfReported": "Entries are self-reported by you — they are not verified with your employer."
   },

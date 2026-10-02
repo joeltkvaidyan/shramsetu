@@ -22,6 +22,13 @@ function rupees(n: number): string {
   return `₹${Number(n || 0).toLocaleString("en-IN")}`;
 }
 
+/** The API returns work_date as a full ISO timestamp ("2026-01-15T00:00:00Z").
+ *  The UI — and the complaint form's <input type="date"> — needs the plain
+ *  UTC calendar day. */
+function day(iso: string): string {
+  return String(iso || "").slice(0, 10);
+}
+
 const STATUS_TONE: Record<WageEntry["payment_status"], "success" | "danger" | "warning"> = {
   paid: "success",
   unpaid: "danger",
@@ -95,19 +102,45 @@ export default function WageLogPage() {
     }
   };
 
-  // Pre-fills the unpaid-wages grievance form with what the diary shows.
-  const fileUnpaidGrievance = () => {
-    if (!summary || summary.total_unpaid <= 0) return;
+  // Rows where agreed > paid — the days a complaint can actually cite.
+  const unpaidEntries = (entries ?? []).filter((e) => e.agreed_amount > e.paid_amount);
+
+  // Deep-links to the complaint form carrying everything the diary already
+  // knows: category, amount, the month, the specific unpaid dates and the
+  // employer — so the worker edits rather than retypes.
+  const fileGrievance = (opts: {
+    amount: number;
+    dates: string[];
+    days: number;
+    date?: string;
+    employer?: string | null;
+  }) => {
     navigate("/worker/grievances/new", {
       state: {
         category: "unpaid_wages",
-        subject: t("wages.grievanceSubject", { amount: rupees(summary.total_unpaid) }),
+        subject: t("wages.grievanceSubject", { amount: rupees(opts.amount) }),
         description: t("wages.grievanceDescription", {
-          amount: rupees(summary.total_unpaid),
-          period: summary.period === "last_90_days" ? t("wages.last90Days") : summary.period,
-          days: summary.days_logged,
+          amount: rupees(opts.amount),
+          period: month,
+          days: opts.days,
+          dates: opts.dates.join(", "),
         }),
+        incident_date: opts.date ?? opts.dates[0] ?? "",
+        employer_name: opts.employer ?? "",
       },
+    });
+  };
+
+  // From the month summary: every unpaid day in the selected month.
+  const fileUnpaidGrievance = () => {
+    if (!summary || summary.total_unpaid <= 0) return;
+    const dates = unpaidEntries.map((e) => day(e.work_date));
+    fileGrievance({
+      amount: summary.total_unpaid,
+      dates,
+      days: summary.days_logged,
+      date: dates[0],
+      employer: unpaidEntries[0]?.employer_name,
     });
   };
 
@@ -260,12 +293,28 @@ export default function WageLogPage() {
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        {w.work_date}
+                        {day(w.work_date)}
                         {w.employer_name ? <span className="text-gray-400"> · {w.employer_name}</span> : null}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 tabular-nums">
                         {t("wages.agreedAmountShort")} {rupees(w.agreed_amount)} · {t("wages.paidAmountShort")} {rupees(w.paid_amount)}
                       </p>
+                      {w.agreed_amount > w.paid_amount && (
+                        <button
+                          onClick={() =>
+                            fileGrievance({
+                              amount: w.agreed_amount - w.paid_amount,
+                              dates: [day(w.work_date)],
+                              days: 1,
+                              date: day(w.work_date),
+                              employer: w.employer_name,
+                            })
+                          }
+                          className="mt-1.5 text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        >
+                          {t("wages.fileForDate", { date: day(w.work_date) })}
+                        </button>
+                      )}
                     </div>
                     <Badge tone={STATUS_TONE[w.payment_status] ?? "neutral"}>
                       {t(`wages.status.${w.payment_status}`, w.payment_status)}

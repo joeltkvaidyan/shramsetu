@@ -23,10 +23,17 @@ export default function GrievanceFormPage() {
   const navigate = useNavigate();
 
   // Optional prefill passed via navigate(..., { state }) — e.g. the Wage
-  // Diary's "file unpaid wage complaint" button lands here with a category,
-  // subject and description already filled in.
+  // Diary's complaint buttons land here with the category, subject,
+  // description, the worker's logged work date and the employer already
+  // filled in.
   const state = useLocation().state as
-    | { category?: string; subject?: string; description?: string }
+    | {
+        category?: string;
+        subject?: string;
+        description?: string;
+        incident_date?: string;
+        employer_name?: string;
+      }
     | null;
   const prefillCategory = CATEGORIES.includes(state?.category as GrievanceCategory)
     ? (state?.category as GrievanceCategory)
@@ -35,9 +42,9 @@ export default function GrievanceFormPage() {
   const [category, setCategory] = useState<GrievanceCategory>(prefillCategory);
   const [subject, setSubject] = useState(state?.subject ?? "");
   const [description, setDescription] = useState(state?.description ?? "");
-  const [employerName, setEmployerName] = useState("");
+  const [employerName, setEmployerName] = useState(state?.employer_name ?? "");
   const [incidentLocation, setIncidentLocation] = useState("");
-  const [incidentDate, setIncidentDate] = useState("");
+  const [incidentDate, setIncidentDate] = useState(state?.incident_date ?? "");
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<{ subject?: string; description?: string }>({});
   const [submitting, setSubmitting] = useState(false);
