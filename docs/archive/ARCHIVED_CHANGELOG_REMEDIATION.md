@@ -1,6 +1,16 @@
-> **ARCHIVED (October 2026)** — this document describes the *earlier* ShramSetu version built on FastAPI + SQLModel/SQLite. The project has since been rebuilt on Node.js/Express + MongoDB. It is kept for history only: file paths, test counts, credential examples and feature claims here do **not** describe the current code. See [README.md](../README.md), [docs/ARCHITECTURE.md](ARCHITECTURE.md) and [docs/SECURITY.md](SECURITY.md).
-
----
+> # ⛔ ARCHIVED — NOT A DESCRIPTION OF THE CURRENT SYSTEM
+>
+> **This document describes a version of ShramSetu that no longer exists** (built
+> on FastAPI + SQLModel/SQLite). The project now runs on **Node.js/Express +
+> MongoDB**, with a separate Python/FastAPI **AI service** for RAG only.
+>
+> Every specific claim below is stale on purpose: file paths, test counts, ports,
+> commands and credential examples. Several of the problems it reports have since
+> been fixed. Reading this as a statement of the present would be wrong.
+>
+> For the current system see [README.md](../README.md),
+> [ARCHITECTURE.md](../ARCHITECTURE.md) and [SECURITY.md](../SECURITY.md).
+> To be explicit: everything after this line is history.
 
 # ShramSetu Remediation — Session 1 Changelog
 

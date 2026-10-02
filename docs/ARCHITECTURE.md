@@ -3,14 +3,116 @@
 Companion to [README.md](../README.md) and [WORKFLOW.md](../WORKFLOW.md)
 (deep walkthrough). This file is the quick, factual map of what runs where.
 
+> **The stack is Node/Express + MongoDB, plus a separate Python/FastAPI AI
+> service for RAG only.** An earlier version of this project was a single
+> Python FastAPI backend with SQLModel/SQLite. That version is gone; documents
+> describing it are in [`archive/`](archive/) and are marked as history.
+
 ## Services
 
 | Service | Stack | Port | Entry |
 |---|---|---|---|
-| Frontend | React 18 + TypeScript + Vite + Tailwind (PWA) | 5199 (dev) | `frontend/` |
+| Frontend | React 18 + TypeScript + Vite + Tailwind (PWA) | 5173 (dev; `start-all.ps1` uses 5199) | `frontend/` |
 | API server | Node.js 22 + Express 4 + Mongoose 8 | 8000 | `server/src/index.js` → `app.js` |
 | AI service | Python 3.10 + FastAPI | 8100 | `ai-service/main.py` (uvicorn) |
 | MongoDB | 8.0 (embedded dev instance or real) | 27017 | `MONGODB_URI` in `server/.env` |
+
+## System architecture
+
+```mermaid
+flowchart LR
+    B["Browser<br/>React + TS (PWA)"]
+    E["Express API :8000<br/>JWT auth, rate limit,<br/>scope check, audit"]
+    M[("MongoDB :27017<br/>workers, grievances,<br/>documents, wages")]
+    A["FastAPI AI :8100<br/>PII strip, translate,<br/>retrieve, answer"]
+    X["Groq / Sarvam / Google<br/>LLM, MT, STT, TTS"]
+
+    B -- "JWT over /api" --> E
+    E -- "Mongoose" --> M
+    E -- "X-Internal-Key" --> A
+    A -- "API keys" --> X
+    B -. "voice (STT/TTS)" .-> A
+
+    classDef db fill:#e8f0fe,stroke:#4285f4
+    classDef ext fill:#fef7e0,stroke:#f9ab00
+    class M db
+    class X ext
+```
+
+Two deliberate choices:
+
+- **The browser never calls the AI service.** Only the Node server does, and
+  every call must carry `X-Internal-Key`. That keeps provider keys off the
+  client and means AI traffic can be rate-limited and audited in one place.
+- **The AI service holds no database.** It is stateless and reads only its
+  document corpus, so it can be scaled or restarted without touching worker data.
+
+## RAG pipeline
+
+```mermaid
+flowchart TD
+    Q["Question (worker language)"]
+    T["Translate to English<br/>cached on disk"]
+    D["FAISS dense search<br/>top 24 candidates"]
+    G{"Similarity<br/>≥ 0.45?"}
+    R["Rerank: RRF of<br/>BM25(translation)<br/>+ BM25(original)"]
+    K["Top 3 deduped chunks<br/>+ source metadata"]
+    L["Groq generates answer<br/>in the worker's language"]
+    N{"Grounded in<br/>the context?"}
+    Y["Answer + sources + confidence"]
+    X["Refuse: 'could not find'"]
+
+    Q --> T --> D --> G
+    G -- "no" --> X
+    G -- "yes" --> R --> K --> L --> N
+    N -- "yes" --> Y
+    N -- "no" --> X
+```
+
+The 0.45 gate is the refusal mechanism: an off-topic or prompt-injected question
+never reaches the LLM with context attached. BM25 reranks only chunks that
+already passed the gate, so it can reorder but never admit a below-threshold
+chunk. Measured on the 70-question suite: hit@1 94%, hit@3 98%, retrieval
+refusals 12/13 — see [eval/ANALYSIS.md](../ai-service/eval/ANALYSIS.md).
+
+## SOS flow
+
+```mermaid
+sequenceDiagram
+    participant W as Worker (app)
+    participant E as Express
+    participant G as Government console
+    W->>E: POST /api/sos (location, token)
+    E->>E: Auth, scope, audit
+    E-->>W: 202 accepted, reference id
+    E->>G: SOS alert (console inbox)
+    W->>E: POST /api/sos/:id/resolve (status)
+    E->>G: status update
+    Note over W,E: SMS/call escalation is NOT wired —<br/>the alert exists only inside the app.
+```
+
+**Known limit:** SOS alerts reach the government console over the API but do
+not trigger an SMS, email or phone call. It is an in-app acknowledgement, not a
+push-to-volunteer system.
+
+## Grievance flow
+
+```mermaid
+stateDiagram-v2
+    [*] --> Draft
+    Draft --> Submitted: worker submits
+    Submitted --> UnderReview: official picks up
+    UnderReview --> ActionTaken: resolution recorded
+    UnderReview --> Rejected: rejected with reason
+    ActionTaken --> Escalated: worker escalates
+    Rejected --> Escalated: worker escalates
+    Escalated --> UnderReview: re-opened
+    ActionTaken --> [*]
+```
+
+Jurisdiction scoping is enforced in `server/src/utils/scope.js`: an official can
+only read and act on grievances inside their assigned state/district. This is
+covered by the server test suite (10 parity tests).
 
 `start-all.ps1` / `stop-all.ps1` manage the three app services on Windows;
 each can also be started manually (see README). The frontend talks only to
@@ -38,10 +140,10 @@ Browser ──JWT──► Express (auth → rate limit → route)
 | `server/tests/` | vitest: 50 tests — 40 security/scope + 10 wage/SOS parity (mongodb-memory-server) |
 | `ai-service/app/services/` | rag_service, translation_service, stt_service (faster-whisper), tts_service (Sarvam/Google), pii |
 | `ai-service/rag/` | `sample_docs/` (curated corpus with provenance headers), `loader.py`, `ingest.py`, FAISS index (generated, gitignored) |
-| `ai-service/tests/` | pytest: corpus integrity, loader, RAG contract, PII, prompt injection |
-| `ai-service/eval/` | 50-question multilingual eval suite + `run_eval.py` → `RESULTS.md` |
-| `frontend/src/` | pages, `context/AuthContext`, `api/client.ts`, `i18n/locales/` (6 languages) |
-| `docs/archive/` | documents describing the earlier FastAPI/SQLite version (banned with a banner) |
+| `ai-service/tests/` | pytest (42 tests): corpus integrity, loader, RAG contract, PII, prompt injection, translation cache |
+| `ai-service/eval/` | 70-question multilingual eval suite + `run_eval.py` → `RESULTS.md`; reasoning and limits in `ANALYSIS.md` |
+| `frontend/src/` | 16 pages, each a lazy chunk; `context/AuthContext`, `api/client.ts`, `i18n/locales/` (6 languages) |
+| `docs/archive/` | superseded FastAPI/SQLite-era documents; every file is prefixed `ARCHIVED_` — see [archive/README.md](archive/README.md) |
 
 ## Configuration surfaces
 
