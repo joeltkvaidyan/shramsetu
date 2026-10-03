@@ -2,3 +2,6 @@
 #   pip install -r requirements-dev.txt
 pytest==8.3.3
 pytest-asyncio==0.24.0
+# Required by starlette's TestClient (test_warmup.py drives the real FastAPI
+# routes through it). Not a runtime dependency of the service.
+httpx==0.27.2
