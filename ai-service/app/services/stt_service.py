@@ -154,6 +154,8 @@ def prewarm() -> None:
     doesn't pay the cold model load — a medium/large model on CPU needs 20-40s,
     which would otherwise blow the proxy timeout on the first Malayalam query."""
 
+    from app.core import warmup
+
     def _load(size: str | None = None) -> None:
         try:
             _get_local_model(size)
@@ -164,15 +166,17 @@ def prewarm() -> None:
             )
         except Exception:
             logger.exception("faster-whisper prewarm failed (will retry on first request)")
+            raise  # recorded as failed; optional, so it warns instead of gating
 
-    threading.Thread(target=_load, name="whisper-prewarm", daemon=True).start()
+    # Optional: STT is the voice path only. Text chat must stay servable on a box
+    # where whisper could not load, so neither model gates readiness.
+    warmup.REGISTRY.track("stt", _load, required=False)
     if settings.WHISPER_INDIC_MODEL:
-        threading.Thread(
-            target=_load,
-            args=(settings.WHISPER_INDIC_MODEL,),
-            name="whisper-prewarm-indic",
-            daemon=True,
-        ).start()
+        warmup.REGISTRY.track(
+            "stt_indic",
+            lambda: _load(settings.WHISPER_INDIC_MODEL),
+            required=False,
+        )
 
 
 def _transcribe_local(file_bytes: bytes, filename: str, whisper_language: str | None) -> str:

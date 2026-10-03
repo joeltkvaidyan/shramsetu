@@ -107,6 +107,13 @@ class Settings(BaseSettings):
     RAG_TOP_K: int = 6
     RAG_MIN_SIMILARITY: float = 0.45  # eval-justified: off-topic/injection questions score <=0.42, genuine hits >=0.47 (eval/RESULTS.md)
 
+    # --- Cold start ---
+    # How long /ask waits for the boot warm-up to finish before answering with a
+    # 503 instead. The Node proxy aborts at AI_TIMEOUT_MS (120s), so a value
+    # below that is what turns a would-be proxy timeout into a fast, honest
+    # "still starting" reply the worker can retry. Set 0 to fail fast.
+    WARMUP_WAIT_SECONDS: float = 90.0
+
     # --- Languages supported by the platform ---
     SUPPORTED_LANGUAGES: List[str] = ["en", "hi", "bn", "te", "ta", "ml"]
 

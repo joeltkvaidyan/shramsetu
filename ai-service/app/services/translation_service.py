@@ -401,7 +401,8 @@ def prewarm() -> None:
     global _prewarm_done
     if _prewarm_done:
         return
-    import threading
+
+    from app.core import warmup
 
     def _load():
         global _prewarm_done
@@ -412,16 +413,22 @@ def prewarm() -> None:
             # on demand if the cloud call ever fails.
             if _ensure_engine("sarvam") or _ensure_engine("google"):
                 logger.info("Cloud MT active — skipping IndicTrans2 prewarm (loads on fallback)")
+                warmup.REGISTRY.mark(
+                    "translation", warmup.SKIPPED, detail="cloud MT engine active"
+                )
                 return
             _ensure_engine("indictrans2")
         except Exception:
             logger.exception("IndicTrans2 prewarm failed (will retry on first request)")
+            raise  # recorded as failed; optional, so it warns instead of gating
         finally:
             _prewarm_done = True
             if _indic_model is not None:
                 logger.info("IndicTrans2 prewarmed (int8=%s)", bool(settings.TRANSLATION_QUANTIZE))
 
-    threading.Thread(target=_load, name="it2-prewarm", daemon=True).start()
+    # Optional: translation only improves recall, and the chatbot answers in
+    # English without it. A failure must not hold /health/ready at 503.
+    warmup.REGISTRY.track("translation", _load, required=False)
 
 
 # ---------------------------------------------------------------------------

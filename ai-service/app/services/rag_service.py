@@ -96,8 +96,9 @@ def prewarm() -> None:
     "ai-service unavailable: This operation was aborted". Warming RAG first
     makes it the last thing still loading when the first user hits chat.
     """
-    import threading
     import time
+
+    from app.core import warmup
 
     def _load() -> None:
         try:
@@ -111,8 +112,11 @@ def prewarm() -> None:
             )
         except Exception:
             logger.exception("RAG prewarm failed (will retry on first request)")
+            raise  # recorded in the warm-up registry; /health/ready stays 503
 
-    threading.Thread(target=_load, name="rag-prewarm", daemon=True).start()
+    # Tracked as REQUIRED: until the FAISS index is loaded /ask cannot answer, so
+    # this is exactly what /health/ready must wait on.
+    warmup.REGISTRY.track("rag", _load, required=True)
 
 
 # --- Language names for the system prompt ---

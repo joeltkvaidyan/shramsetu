@@ -56,8 +56,8 @@ repository. Every file path below exists — open it live in your viva.*
 
 **Key point for the viva:** the Express layer never holds business state;
 authorization is centralised in `middleware/auth.js` + `utils/scope.js`;
-the AI service never trusts the network (every request except `/health`
-must carry the shared internal key) and never sees raw PII.
+the AI service never trusts the network (every request except the `/health*`
+probes must carry the shared internal key) and never sees raw PII.
 
 ---
 

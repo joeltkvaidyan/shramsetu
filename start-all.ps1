@@ -5,6 +5,10 @@
 # Usage:
 #   powershell -NoProfile -ExecutionPolicy Bypass -File start-all.ps1
 #
+# Waits for READINESS, not just an open port: the AI service answers 503 on
+# /health/ready until its models finish loading, and the script prints which one
+# it is still waiting on instead of returning while the chatbot cannot answer.
+#
 # NOTE: keep this file pure ASCII. PowerShell 5.1 reads BOM-less scripts
 # as ANSI, so any em dash / smart quote corrupts string parsing.
 
@@ -23,11 +27,19 @@ function Get-PortPid([int]$Port) {
   return $null
 }
 
-function Test-Http([string]$Url, [int]$TimeoutSec = 3) {
+function Get-HttpCode([string]$Url, [int]$TimeoutSec = 3) {
+  # curl.exe for every probe: it handles the self-signed :5443 cert with the
+  # same code path as plain http, and returns 000 when nothing is listening
+  # (so "not up yet" and "up but not ready" stay distinguishable).
+  $code = & curl.exe -sk -o NUL -w "%{http_code}" --max-time $TimeoutSec $Url 2>$null
+  if ("$code" -match '^\d{3}$') { return [int]$code }
+  return 0
+}
+
+function Get-Json([string]$Url, [int]$TimeoutSec = 3) {
   try {
-    $resp = Invoke-WebRequest -Uri $Url -TimeoutSec $TimeoutSec -UseBasicParsing
-    return ($resp.StatusCode -ge 200 -and $resp.StatusCode -lt 500)
-  } catch { return $false }
+    return (& curl.exe -sk --max-time $TimeoutSec $Url 2>$null) -join ""
+  } catch { return "" }
 }
 
 # Starts a detached process; stdout and stderr MUST go to different files
@@ -92,34 +104,74 @@ if (Get-PortPid 5443) {
   $started++
 }
 
-# -- Health checks (poll up to 90s; AI service cold start is slow) -------
+# -- Readiness checks ------------------------------------------------------
+# This waits for the AI service to be READY, not merely LISTENING. The port
+# opens before the embedding model and FAISS index finish loading, and asking
+# the chatbot before then is what used to hang the first question after a
+# restart until the Node proxy aborted it at 120s. The AI service reports this
+# honestly on /health/ready (503 = still warming, 200 = it can answer).
 Write-Host ""
-Write-Host "Waiting for services ..."
+Write-Host "Waiting for services (the AI service is ready only after its models load) ..."
 $checks = @(
-  @{ Name = "API      :8000"; Url = "http://127.0.0.1:8000/health" },
-  @{ Name = "AI       :8100"; Url = "http://127.0.0.1:8100/health" },
-  @{ Name = "Frontend :5199"; Url = "http://127.0.0.1:5199/" },
-  @{ Name = "HTTPS    :5443"; Url = "https://127.0.0.1:5443/" }
+  @{ Name = "API      :8000"; Url = "http://127.0.0.1:8000/health";      Max = 90;  Port = 8000 },
+  @{ Name = "AI       :8100"; Url = "http://127.0.0.1:8100/health/ready"; Max = 240; Port = 8100 },
+  @{ Name = "Frontend :5199"; Url = "http://127.0.0.1:5199/";           Max = 90;  Port = 5199 },
+  @{ Name = "HTTPS    :5443"; Url = "https://127.0.0.1:5443/";          Max = 90;  Port = 5443 }
 )
 $ok = @{}
-for ($i = 0; $i -lt 45; $i++) {
-  Start-Sleep -Seconds 2
-  $pending = @($checks | Where-Object { -not $ok[$_.Name] })
+$warm = @{}
+$deadline = @{}
+foreach ($c in $checks) {
+  $ok[$c.Name] = $false
+  $warm[$c.Name] = $false
+  $deadline[$c.Name] = (Get-Date).AddSeconds($c.Max)
+}
+$lastState = ""
+
+while ($true) {
+  $now = Get-Date
+  $pending = @($checks | Where-Object { -not $ok[$_.Name] -and $now -lt $deadline[$_.Name] })
   if ($pending.Count -eq 0) { break }
+
   foreach ($c in $pending) {
-    if ($c.Url -like "https*") {
-      $code = & curl.exe -sk -o NUL -w "%{http_code}" --max-time 3 $c.Url 2>$null
-      if ("$code" -match '^(2|3|4)') { $ok[$c.Name] = $true }
-    } else {
-      if (Test-Http $c.Url) { $ok[$c.Name] = $true }
+    $code = Get-HttpCode $c.Url
+    if ($code -ge 200 -and $code -lt 300) { $ok[$c.Name] = $true; continue }
+
+    if ($c.Port -eq 8100) {
+      if (Get-PortPid 8100) {
+        # Listening but not ready: report WHICH model is still loading, so a
+        # 60s wait does not look like a hang.
+        $body = Get-Json $c.Url
+        $state = if ($body -match '"state"\s*:\s*"([a-z]+)"') { $Matches[1] } else { "http $code" }
+        $loading = if ($body -match '"warming"\s*:\s*\[([^\]]*)\]') { $Matches[1].Trim() } else { "" }
+        $warm[$c.Name] = $true
+        $line = "  ... AI :8100 $state"
+        if ($loading -and $loading -ne " ") { $line += " (loading: $loading)" }
+        if ($line -ne $lastState) { Write-Host $line; $lastState = $line }
+      } elseif (((Get-Date) - $deadline[$c.Name]).TotalSeconds -lt -30) {
+        # No process on :8100 at all - fail fast rather than burn the full wait
+        # on a service that is not coming.
+        Write-Host "  ... AI :8100 never opened a port - giving up"
+        $ok[$c.Name] = $false
+        $deadline[$c.Name] = Get-Date
+      }
     }
   }
+  Start-Sleep -Seconds 2
 }
 
 Write-Host ""
 $failed = 0
 foreach ($c in $checks) {
-  if ($ok[$c.Name]) { Write-Host "[OK]   $($c.Name)" } else { Write-Host "[FAIL] $($c.Name)  - check shramsetu\logs\"; $failed++ }
+  if ($ok[$c.Name]) {
+    Write-Host "[OK]   $($c.Name)"
+  } elseif ($c.Port -eq 8100 -and $warm[$c.Name]) {
+    Write-Host "[WARM] $($c.Name)  - still loading models. The app runs, but the chatbot will answer 'starting up' for another minute. Watch shramsetu\logs\ai.log"
+    $failed++
+  } else {
+    Write-Host "[FAIL] $($c.Name)  - check shramsetu\logs\"
+    $failed++
+  }
 }
 
 Write-Host ""
