@@ -103,18 +103,29 @@ Final-year project scope, stated plainly: what is enforced, what is not.
 10. **Eval coverage is retrieval-only** by default (no LLM key needed);
     generation-time grounding quality should be re-measured with `--full`
     when a key is available.
-11. **Two known npm advisories in the frontend are unfixed**, deliberately.
-    `npm audit` reports a HIGH (`braces` stack-exhaustion DoS, reached via
-    `tailwindcss@3` → `chokidar` → `braces`, so build-time glob expansion
-    only) and a MODERATE (`react-router-dom@6` open redirect via a backslash
-    in `<Link>`/`useNavigate`, plus an SSR-hydration constructor injection that
-    does not apply to this SPA). `npm audit fix --force` would resolve both by
-    upgrading to `tailwindcss@4` and `react-router-dom@7` — two breaking
-    majors, one of them a routing rewrite across all 16 pages, which is a poor
-    trade in a project being presented. CI therefore gates on
-    `npm audit --omit=dev --audit-level=high` (nothing high or critical in
-    shipped code, currently exit 0) and additionally prints the full
-    dev-inclusive audit for visibility. The server has zero advisories.
+11. **Known npm advisories in the frontend are unfixed, deliberately.**
+    `npm audit` (re-measured 2026-10-03) reports 7 findings in 2 advisory
+    groups, none of them in shipped code:
+    - **HIGH — `braces`** stack-exhaustion DoS. Reached through
+      `tailwindcss@3` → `chokidar` → `braces`, and also through
+      `fast-glob` → `micromatch`. Build-time glob expansion only;
+      devDependency. The last 3.x release is **3.4.19** and the advisory
+      range is `<=3.4.19`, so no in-major patch exists — the only fix is
+      `tailwindcss@4`, a breaking major (new config model and plugin API)
+      whose migration would land in the middle of a presentation build.
+    - **MODERATE — `react-router-dom`** open redirect via a backslash in
+      `<Link>`/`useNavigate`, plus an SSR-hydration constructor injection
+      that does not apply to this client-only SPA. The advisory range is
+      `6.0.0 - 7.17.0` and the last 6.x release is **6.30.6**, so again no
+      in-major patch exists. The app uses only stable v6 APIs
+      (`BrowserRouter`, `Routes`, `Route`, `Navigate`, `NavLink`,
+      `useNavigate`, `useParams`, `useLocation` — no `Switch`, `Redirect` or
+      `useHistory`), so a v7 upgrade is plausible; it is left as a scoped
+      follow-up rather than smuggled into this phase.
+    CI therefore gates on `npm audit --omit=dev --audit-level=high`
+    (nothing high or critical in shipped code; currently exit 0) and
+    additionally prints the full dev-inclusive audit for visibility.
+    The server has zero advisories.
 
 ## Secrets handling
 

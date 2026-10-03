@@ -160,7 +160,7 @@ Run it. These are the numbers as of this commit:
 ```bash
 cd server    && npm test    # 50 passed  — scoping, ownership, upload crypto, rate limits
 cd frontend  && npm test    # 54 passed  — wallet PIN lockout, auth gate, i18n bundle parity
-cd ai-service && venv/Scripts/python -m pytest   # 68 passed — corpus, RAG, PII, injection, cold start
+cd ai-service && venv/Scripts/python -m pytest   # 71 passed — corpus, RAG, PII, injection, cold start
 cd server    && npm run verify                  # 32 live checks across BOTH services
 ```
 

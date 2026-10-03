@@ -323,7 +323,7 @@ Run any of these live:
 ```bash
 cd server     && npm test                                  # 50 passed
 cd frontend   && npm test                                  # 54 passed
-cd ai-service && venv/Scripts/python -m pytest             # 68 passed
+cd ai-service && venv/Scripts/python -m pytest             # 71 passed
 cd server     && npm run verify                           # 32 live checks, both services
 cd ai-service && venv/Scripts/python eval/run_eval.py      # → eval/RESULTS.md (~30 s)
 ```

@@ -5,3 +5,10 @@ pytest-asyncio==0.24.0
 # Required by starlette's TestClient (test_warmup.py drives the real FastAPI
 # routes through it). Not a runtime dependency of the service.
 httpx==0.27.2
+# Import-time dependency of main.py: the /transcribe route declares
+# `file: UploadFile = File(...)`, and FastAPI raises at app-construction time
+# when the multipart parser is absent. CI installs only this minimal set (no
+# torch), so without this pin a clean install cannot even import main.py, and
+# the whole test module fails to collect — that is the failure this pin fixes.
+# Keep in step with requirements.txt.
+python-multipart==0.0.9

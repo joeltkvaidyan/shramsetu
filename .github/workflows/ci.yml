@@ -37,10 +37,17 @@ jobs:
           cache-dependency-path: ai-service/requirements-dev.txt
       - name: Install minimal test dependencies
         # Only what the offline tests import: fastapi (main.py), pydantic-settings
-        # (config), pytest, httpx (starlette TestClient). The heavy ML stack is
-        # NOT needed for tests -- test_warmup.py imports main and the routes
-        # work with every ML import blocked (verified: the service modules keep
-        # their heavy imports inside function bodies, not at module level).
+        # (config), pytest, httpx (starlette TestClient) and python-multipart.
+        # The heavy ML stack is NOT needed for tests -- test_warmup.py imports
+        # main and the routes work with every ML import blocked (verified: the
+        # service modules keep their heavy imports inside function bodies, not
+        # at module level).
+        #
+        # python-multipart is an IMPORT-TIME requirement of main.py, not a test
+        # nicety: main.py:252 declares `file: UploadFile = File(...)`, and
+        # FastAPI raises "Form data requires python-multipart to be installed"
+        # while building the app, so test_warmup.py fails to COLLECT (exit 2)
+        # on a clean install. It is pinned in requirements-dev.txt.
         run: pip install fastapi==0.115.0 pydantic-settings==2.5.2 -r requirements-dev.txt
       - name: Run test suite (offline; no model downloads)
         run: python -m pytest
@@ -78,14 +85,20 @@ jobs:
         working-directory: server
         run: npm audit --audit-level=high
       - name: npm audit — frontend production deps (fails on high+)
-        # --omit=dev is deliberate and load-bearing. The frontend has exactly two
-        # known advisories, neither of them in shipped code:
-        #   1. HIGH   braces (stack-exhaustion DoS) via tailwindcss@3 -> chokidar
-        #            -> braces. Build-time glob expansion only; devDependency.
+        # --omit=dev is deliberate and load-bearing. The frontend has two known
+        # advisory groups, neither of them in shipped code:
+        #   1. HIGH   braces (stack-exhaustion DoS) reached through tailwindcss@3
+        #            -> chokidar -> braces, and also via fast-glob -> micromatch.
+        #            Build-time glob expansion only; devDependency. Verified
+        #            2026-10-03: tailwindcss 3.4.19 is the LAST 3.x release and
+        #            the advisory range is <=3.4.19, so no 3.x patch exists.
         #            npm audit fix --force wants tailwindcss@4, a breaking major.
-        #   2. MODERATE react-router-dom@6 open redirect / SSR hydration.
-        #            npm audit fix --force wants react-router-dom@7, also a
-        #            breaking major (rewrites routing across 16 pages).
+        #   2. MODERATE react-router-dom open redirect / SSR hydration. Verified
+        #            2026-10-03: the advisory range is 6.0.0 - 7.17.0 and the
+        #            last 6.x release is 6.30.6, so again no in-major patch.
+        #            npm audit fix --force wants react-router-dom@7 (breaking;
+        #            the app uses only stable v6 APIs and would likely survive
+        #            it, but the fix belongs in its own commit, not a CI tweak).
         # Both are devDependency/prod-moderate, so this gate is "no high or
         # critical in what we actually ship". Tracked in docs/SECURITY.md.
         working-directory: frontend

@@ -138,7 +138,7 @@ demo workers/grievances if the users collection is empty.
 |---|---|---|
 | Server unit/security | `cd server && npm test` | 50 tests: scoping, ownership, upload crypto, rate limits, auth hardening, wage/SOS parity |
 | Frontend unit/component | `cd frontend && npm test` | 54 tests: wallet PIN lockout, auth-gate routing, status badge a11y, i18n bundle parity |
-| AI service | `cd ai-service && venv/Scripts/python -m pytest` | 68 tests: corpus integrity, loader, RAG contract, PII, prompt injection, cold-start readiness |
+| AI service | `cd ai-service && venv/Scripts/python -m pytest` | 71 tests: corpus integrity, loader, RAG contract, PII, prompt injection, cold-start readiness |
 | End-to-end checks | `cd server && npm run verify` | 33 live checks across both services (incl. wage + SOS round trips). A check that needs an external provider we have no working key for prints `SKIP` with the reason instead of silently disappearing, and is never counted as a pass |
 | RAG eval harness | `venv/Scripts/python eval/run_eval.py` | hit@1/hit@3, retrieval refusals, per-language → `eval/RESULTS.md` |
 
