@@ -74,13 +74,18 @@ powershell -NoProfile -ExecutionPolicy Bypass -File start-all.ps1
 ```
 
 Starts all services detached, **skipping any already running**, waits for
-health checks, then prints the URLs:
+**readiness** (not just an open port), then prints the URLs:
 
 | Service | URL | Notes |
 |---|---|---|
 | Node API | http://127.0.0.1:8000 | OTPs appear in the server terminal |
-| AI service | http://127.0.0.1:8100 | first `/ask` or `/speak` warms models |
+| AI service | http://127.0.0.1:8100 | `/health/ready` is 503 until its models finish loading |
 | Frontend (desktop) | http://127.0.0.1:5199 | |
+
+The AI service loads its embedding model and FAISS index in the background at
+boot, so its port opens long before it can answer. The launcher waits on
+`/health/ready` and prints which model is still loading, rather than reporting
+"ready" and then stalling the first question until the Node proxy times out.
 
 Logs land in `shramsetu/logs/` (gitignored). Stop everything with
 `powershell -NoProfile -ExecutionPolicy Bypass -File stop-all.ps1`
@@ -132,9 +137,13 @@ demo workers/grievances if the users collection is empty.
 | Suite | Command | Covers |
 |---|---|---|
 | Server unit/security | `cd server && npm test` | 50 tests: scoping, ownership, upload crypto, rate limits, auth hardening, wage/SOS parity |
-| End-to-end checks | `cd server && npm run verify` | 32 live checks across both services (incl. wage + SOS round trips) |
-| AI service | `cd ai-service && venv/Scripts/python -m pytest` | 35 tests: corpus integrity, loader, RAG contract, PII, prompt injection |
+| Frontend unit/component | `cd frontend && npm test` | 54 tests: wallet PIN lockout, auth-gate routing, status badge a11y, i18n bundle parity |
+| AI service | `cd ai-service && venv/Scripts/python -m pytest` | 68 tests: corpus integrity, loader, RAG contract, PII, prompt injection, cold-start readiness |
+| End-to-end checks | `cd server && npm run verify` | 33 live checks across both services (incl. wage + SOS round trips). A check that needs an external provider we have no working key for prints `SKIP` with the reason instead of silently disappearing, and is never counted as a pass |
 | RAG eval harness | `venv/Scripts/python eval/run_eval.py` | hit@1/hit@3, retrieval refusals, per-language → `eval/RESULTS.md` |
+
+All four run in CI on every push (`.github/workflows/ci.yml`): server tests,
+AI-service tests, frontend typecheck + tests + build, and a dependency audit.
 
 ## Production notes (honest scope)
 
@@ -154,5 +163,7 @@ Still needed for a real deployment:
 - Push notifications (FCM) and persistent media for chat/attachments.
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md),
-[docs/SECURITY.md](docs/SECURITY.md) (threat model + known limitations) and
-[WORKFLOW.md](WORKFLOW.md) (code walkthrough for the viva).
+[docs/SECURITY.md](docs/SECURITY.md) (threat model + known limitations),
+[DEMO.md](DEMO.md) (timed demo script, credentials, troubleshooting) and
+[VIVA_QA.md](VIVA_QA.md) (likely examiner questions with defensible answers).
+[WORKFLOW.md](WORKFLOW.md) is the code walkthrough for the viva.

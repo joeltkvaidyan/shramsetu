@@ -35,6 +35,9 @@ async function aiFetch(path, init = {}) {
   }
 }
 
+// Used both when the AI service is unreachable AND when it is still warming up
+// after a restart (it answers 503 with ready=false rather than blocking). The
+// wording covers both cases honestly instead of promising a specific cause.
 const LANG_FALLBACKS = {
   en: { answer: "The AI assistant is starting up or unavailable right now. Please try again in a minute.", simple_explanation: "Service unavailable" },
   hi: { answer: "AI सहायक अभी उपलब्ध नहीं है। कृपया एक मिनट में फिर से कोशिश करें।", simple_explanation: "सेवा अनुपलब्ध" },
@@ -75,7 +78,18 @@ router.post("/ask", authenticate, requireWorker, async (req, res) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ question: stripPii(question), language }),
     });
-    payload = await r.json();
+    // A non-2xx from the AI service is a real response, not a crash: 503 with
+    // ready=false means it is still warming up after its own bounded wait.
+    // Falling back here is what turns "still starting" into the localised
+    // message below instead of an unhandled error — the upstream body has no
+    // `answer` field, so it must never be treated as a ChatAnswer.
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({}));
+      console.warn(`[chat/ask] ai-service ${r.status}:`, err.detail || "(no detail)");
+      payload = unavailableAnswer(language);
+    } else {
+      payload = await r.json();
+    }
   } catch (err) {
     console.warn("[chat/ask] ai-service unavailable:", err.message);
     payload = unavailableAnswer(language);

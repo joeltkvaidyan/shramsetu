@@ -53,10 +53,19 @@ Final-year project scope, stated plainly: what is enforced, what is not.
 - `helmet` security headers; CORS allowlist whenever `CORS_ORIGINS` is set.
 - Rate limits: general API limiter plus strict per-route limiters (OTP
   request/verify, worker login, government login, register), env-tunable.
-- AI service: requires `X-Internal-Key` (except `/health`), per-IP rate
-  limit, request-size cap.
+- AI service: requires `X-Internal-Key` (except the health paths `/health`,
+  `/health/live` and `/health/ready` — a container probe has no way to present
+  the Node server's key, and a readiness probe must never be the thing that
+  fails), per-IP rate limit, request-size cap.
 
 **Availability / operations**
+- Liveness/readiness split on the AI service. `/health/live` is 200 whenever
+  the process is up; `/health/ready` stays 503 until the required warm-up
+  (embedding model + FAISS index) has finished. `start-all.ps1` waits on
+  readiness and prints which model is still loading, so a restart no longer
+  reports "ready" and then stalls the first question until the proxy aborts.
+  Liveness deliberately does *not* track warm-up: restarting a warming service
+  restarts the very load it was waiting on.
 - Production boot guard (`server/src/config.js assertProductionSafe`):
   refuses default admin password, OTP echo, demo seeding, missing master
   key/JWT secret, in-memory Mongo.
@@ -94,6 +103,18 @@ Final-year project scope, stated plainly: what is enforced, what is not.
 10. **Eval coverage is retrieval-only** by default (no LLM key needed);
     generation-time grounding quality should be re-measured with `--full`
     when a key is available.
+11. **Two known npm advisories in the frontend are unfixed**, deliberately.
+    `npm audit` reports a HIGH (`braces` stack-exhaustion DoS, reached via
+    `tailwindcss@3` → `chokidar` → `braces`, so build-time glob expansion
+    only) and a MODERATE (`react-router-dom@6` open redirect via a backslash
+    in `<Link>`/`useNavigate`, plus an SSR-hydration constructor injection that
+    does not apply to this SPA). `npm audit fix --force` would resolve both by
+    upgrading to `tailwindcss@4` and `react-router-dom@7` — two breaking
+    majors, one of them a routing rewrite across all 16 pages, which is a poor
+    trade in a project being presented. CI therefore gates on
+    `npm audit --omit=dev --audit-level=high` (nothing high or critical in
+    shipped code, currently exit 0) and additionally prints the full
+    dev-inclusive audit for visibility. The server has zero advisories.
 
 ## Secrets handling
 

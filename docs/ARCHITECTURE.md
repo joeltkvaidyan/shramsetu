@@ -129,6 +129,31 @@ Browser ──JWT──► Express (auth → rate limit → route)
                                           FAISS → gate → Groq) ──► Groq/Sarvam/Google
 ```
 
+## Cold start
+
+The AI service is three heavy models and one vector index, loaded in background
+threads at boot. Uvicorn binds `:8100` the instant those threads are *spawned* —
+not when they finish — so for the first ~30s the port answers while `/ask`
+cannot. The service tracks its own warm-up state in `app/core/warmup.py` and
+reports it honestly:
+
+| Endpoint | While warming | Once ready | Why both exist |
+|---|---|---|---|
+| `GET /health/live` | 200 | 200 | Liveness only. Never reflects warm-up — restarting a warming service restarts the very load it is waiting on. |
+| `GET /health/ready` | **503** + which model is loading | 200 | Readiness. What `start-all.ps1` and any deploy script should gate on. |
+| `GET /health` | 200, `ready:false` | 200, `ready:true` | Liveness + full warm-up state. `status` stays `"ok"` for existing consumers. |
+
+`rag` is **required** (without it `/ask` cannot answer). `translation` and the
+two `stt` models are **optional**: they are cloud/local fallbacks, so a failure
+becomes a `warnings` entry instead of a 503. `translation` reports `skipped`
+when a cloud MT engine is active — a deliberate choice to keep ~1 GB of RAM
+free, not a fault.
+
+A `/ask` that lands mid-warm-up waits up to `WARMUP_WAIT_SECONDS` (90) for the
+index, then answers, rather than either serving from a half-loaded model or
+hanging until the Node proxy aborts at 120s. Past that bound it returns a fast
+503 and the Node proxy shows the worker the localised "still starting" message.
+
 ## Key directories
 
 | Path | Contents |

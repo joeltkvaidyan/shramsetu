@@ -3,6 +3,7 @@
  */
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { config } from "../src/config.js";
 
 // Dev OTP log the backend appends to on every send (server/logs/otp-dev.log).
 // Asserting on THIS run's OTP — not stale terminal output from earlier runs.
@@ -11,6 +12,11 @@ const otpLog = fileURLToPath(new URL("../logs/otp-dev.log", import.meta.url));
 const B = "http://127.0.0.1:8000/api/v1";
 const results = [];
 const check = (name, ok, extra = "") => results.push([ok ? "PASS" : "FAIL", name, extra]);
+// A check that cannot run in this environment must say so out loud rather than
+// silently vanish: the summary reports SKIPs next to PASSes, never instead of
+// them. Use ONLY for a documented external dependency, never for our own code —
+// see the TTS check, where a broken proxy still FAILs.
+const skip = (name, reason) => results.push(["SKIP", name, reason]);
 const jsonHeaders = { "Content-Type": "application/json" };
 
 // ── 1. Government login ──────────────────────────────────────────────
@@ -76,10 +82,17 @@ r = await fetch(`${B}/grievances/${created.id}/withdraw`, { method: "POST", head
 check("withdraw grievance", r.status === 200);
 
 // ── 7. Notifications: gov → workers round trip ───────────────────────
+r = await fetch(`${B}/government/notifications/send`, { method: "POST", headers: { ...gt, ...jsonHeaders }, body: JSON.stringify({ title: "Verification broadcast", body: "Automated broadcast check", priority: "medium", target: "all" }) });
+const bc = await r.json();
+check("broadcast send reaches every worker", r.status === 201 && bc.sent_count >= 10, JSON.stringify(bc));
+
 r = await fetch(`${B}/government/notifications/send`, { method: "POST", headers: { ...gt, ...jsonHeaders }, body: JSON.stringify({ title: "Verification notice", body: "Automated targeting check", priority: "medium", target: "occupation", target_value: "construction" }) });
 const sent = await r.json();
 check("targeted send → exactly 2 construction workers", r.status === 201 && sent.sent_count === 2, JSON.stringify(sent));
 
+// Two sends reach this worker (it is a construction worker), so unread must be
+// at least 2 on a freshly seeded database. Asserting >= 1 here would let a
+// regression that drops broadcast fan-out pass unnoticed.
 const uc = await (await fetch(`${B}/notifications/unread-count`, { headers: wh })).json();
 check("worker unread ≥ 2 (broadcast + targeted)", uc.unread_count >= 2, `unread=${uc.unread_count}`);
 
@@ -134,13 +147,27 @@ const ack = await r.json();
 check("official acknowledges SOS", r.status === 200 && ack.status === "acknowledged" && (ack.acknowledgements || []).length > 0);
 
 // ── 9. AI assistant via Node proxy ───────────────────────────────────
-// Health first, so a down AI service fails HERE with a clear message
-// instead of quietly passing on the Node server's fallback reply.
+// Readiness first, so a down AI service fails HERE with a clear message
+// instead of quietly passing on the Node server's fallback reply. /health/ready
+// (not /health) because an open port only means uvicorn is listening: the port
+// opens minutes before the embedding model and FAISS index finish loading, and
+// a chat/ask that lands in that window comes back as the fallback reply.
 let aiUp = false;
+let aiDetail = "";
 try {
-  aiUp = (await (await fetch("http://127.0.0.1:8100/health")).json())?.status === "ok";
+  const readyRes = await fetch("http://127.0.0.1:8100/health/ready");
+  const readyBody = await readyRes.json();
+  aiUp = readyBody?.ready === true;
+  if (!aiUp) {
+    const w = readyBody?.warmup || {};
+    aiDetail = `state=${readyBody?.state} loading=[${(w.warming || []).join(",")}] failed=[${(w.failed || []).join(",")}]`;
+  }
 } catch { /* unreachable */ }
-check("ai-service health on :8100", aiUp, aiUp ? "" : "START IT: cd ai-service && venv/Scripts/python -m uvicorn main:app --host 127.0.0.1 --port 8100");
+check(
+  "ai-service READY on :8100",
+  aiUp,
+  aiUp ? "" : `${aiDetail || "START IT: cd ai-service && venv/Scripts/python -m uvicorn main:app --host 127.0.0.1 --port 8100"}`,
+);
 
 r = await fetch(`${B}/chat/ask`, { method: "POST", headers: wh, body: JSON.stringify({ question: "How do I register for e-Shram?", language: "en" }) });
 const ans = await r.json();
@@ -156,9 +183,37 @@ check("chat history persisted (user+assistant)", hist.length >= 2 && hist[hist.l
 r = await fetch(`${B}/chat/speak?text=${encodeURIComponent("Hello, this is ShramSetu.")}&language=en`, { headers: wh });
 const ct = r.headers.get("content-type") || "";
 const bytes = (await r.arrayBuffer()).byteLength;
-check("chat/speak returns audio", r.status === 200 && ct.startsWith("audio/") && bytes > 10000, `${ct} ${bytes}B`);
+
+// The proxy deliberately replaces the upstream's error text with a generic
+// "Speech service unavailable.", so from its response alone we cannot tell an
+// outage from our own bug. Ask the AI service directly: only its own
+// "all providers failed" verdict is a SKIP. If the AI service CAN speak and the
+// proxy still returns JSON, that is a proxy bug and must FAIL.
+const SAY = "Hello, this is ShramSetu.";
+let providerDown = false;
+let providerWhy = "";
+try {
+  const up = await fetch(`http://127.0.0.1:8100/speak?text=${encodeURIComponent(SAY)}&language=en`, {
+    headers: config.aiInternalKey ? { "X-Internal-Key": config.aiInternalKey } : {},
+  });
+  if (up.status === 503 && /all tts providers failed/i.test(await up.text())) {
+    providerDown = true;
+    providerWhy = "ai-service reports every TTS provider failed (Sarvam/Google keys absent or out of credit)";
+  }
+} catch { /* ai-service down is already reported by the readiness check */ }
+
+if (providerDown) {
+  skip("chat/speak returns audio", `${providerWhy}; set a working SARVAM_API_KEY or GOOGLE_API_KEY to run this check`);
+} else {
+  check("chat/speak returns audio", r.status === 200 && ct.startsWith("audio/") && bytes > 10000, `${ct} ${bytes}B`);
+}
 
 console.log(results.map((x) => x.join("  ")).join("\n"));
 const fails = results.filter((x) => x[0] === "FAIL").length;
-console.log(`\n${results.length - fails}/${results.length} checks passed`);
+const skips = results.filter((x) => x[0] === "SKIP").length;
+const ran = results.length - skips;
+const tally = [`${ran - fails}/${ran} checks passed`];
+if (skips) tally.push(`${skips} skipped (see above)`);
+if (fails) tally.push(`${fails} FAILED`);
+console.log(`\n${tally.join(" · ")}`);
 process.exit(fails ? 1 : 0);
