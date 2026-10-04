@@ -1,0 +1,154 @@
+# ShramSetu — Render Blueprint (https://render.com/docs/blueprint-spec)
+#
+# Four resources, one public URL:
+#   shramsetu-web  static SPA (free)                -> https://shramsetu-web.onrender.com
+#   shramsetu-api  Node API (0.5c-512mb)            -> https://shramsetu-api.onrender.com
+#   shramsetu-ai   AI service (2c-4g + 5GB disk)    -> https://shramsetu-ai.onrender.com
+#   shramsetu-db   MongoDB (private + 1GB disk)     -> private network only
+#
+# Secrets are declared sync: false and are NOT in this file:
+#   JWT_SECRET_KEY, BOOTSTRAP_ADMIN_PASSWORD, DOC_MASTER_KEY, AI_INTERNAL_KEY,
+#   GROQ_API_KEY, SARVAM_API_KEY, HF_TOKEN
+# The dashboard prompts for them during blueprint creation; when creating via
+# the API they land empty until set (see DEPLOYMENT.md).
+#
+# The browser talks only to shramsetu-web: the SPA is built with
+# VITE_API_BASE_URL pointing at shramsetu-api (cross-origin — static sites
+# have no nginx proxy, so CORS_ORIGINS on the API allows the web origin).
+# shramsetu-api reaches shramsetu-ai over the public URL, guarded by
+# AI_INTERNAL_KEY. shramsetu-db is reachable only on the private network.
+
+version: "1"
+
+services:
+  # ── 1. SPA — the public entry point ──────────────────────────────────────
+  - type: web
+    runtime: static
+    name: shramsetu-web
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    # SPA fallback for client-side routing (react-router).
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      # Skip Render's auto dependency install; the build command runs npm ci.
+      - key: SKIP_INSTALL_DEPS
+        value: "true"
+      # Build-time API origin (cross-origin; no nginx proxy on static sites).
+      - key: VITE_API_BASE_URL
+        value: https://shramsetu-api.onrender.com/api/v1
+
+  # ── 2. Node API ──────────────────────────────────────────────────────────
+  - type: web
+    runtime: docker
+    name: shramsetu-api
+    dockerfilePath: ./server/Dockerfile
+    dockerContext: ./server
+    plan: 0.5c-512mb # never sleeps; node + mongoose fit easily in 512MB
+    healthCheckPath: /health
+    envVars:
+      - key: ENV
+        value: "production"
+      - key: DEBUG
+        value: "false"
+      # Private-network Mongo. render.yaml cannot interpolate a full URI, so
+      # the server assembles it from these parts (server/src/config.js).
+      - key: MONGO_HOST
+        fromService:
+          name: shramsetu-db
+          type: pserv
+          property: host
+      - key: MONGO_USER
+        value: root
+      # Same demo credentials as docker-compose.yml — change both together
+      # before exposing anything beyond a demo.
+      - key: MONGO_PASSWORD
+        value: shramsetu123
+      - key: MONGO_DB
+        value: shramsetu
+      # Production boot guard (server/src/config.js assertProductionSafe).
+      - key: OTP_ECHO_ENABLED
+        value: "false"
+      - key: SEED_DEMO_DATA
+        value: "false"
+      - key: CORS_ORIGINS
+        value: https://shramsetu-web.onrender.com
+      - key: AI_SERVICE_URL
+        value: https://shramsetu-ai.onrender.com
+      - key: JWT_SECRET_KEY
+        sync: false
+      - key: BOOTSTRAP_ADMIN_PASSWORD
+        sync: false
+      - key: DOC_MASTER_KEY
+        sync: false
+      - key: AI_INTERNAL_KEY
+        sync: false
+
+  # ── 3. AI service (RAG + Groq LLM, local STT, Sarvam TTS) ───────────────
+  - type: web
+    runtime: docker
+    name: shramsetu-ai
+    dockerfilePath: ./ai-service/Dockerfile
+    dockerContext: ./ai-service
+    plan: 2c-4g # torch + whisper + IndicTrans2; 1c-2g risks OOM
+    # /health, NOT /health/ready: model downloads run in background threads
+    # after boot and readiness flips minutes later — the deploy must not gate
+    # on them.
+    healthCheckPath: /health
+    # Bind Render's $PORT (routing + health checks target it), not the
+    # Dockerfile's 8100.
+    dockerCommand: 'sh -c "uvicorn main:app --host 0.0.0.0 --port $PORT --timeout-keep-alive 60"'
+    disk:
+      name: ai-models
+      mountPath: /app/models
+      sizeGB: 5 # disk sizes must be 1 or a multiple of 5
+    envVars:
+      - key: ENV
+        value: "production"
+      - key: DEBUG
+        value: "false"
+      # A reasoning-capable Groq model (the code sends reasoning_effort).
+      - key: GROQ_MODEL
+        value: openai/gpt-oss-120b
+      # HF/whisper/IndicTrans2 weights persist on the disk across restarts.
+      - key: HF_HOME
+        value: /app/models/huggingface
+      # "small" (the tested default) keeps peak RSS ~2.5GB on this plan.
+      # WHISPER_INDIC_MODEL stays empty so only ONE whisper model is resident
+      # (compose uses large-v3-turbo + a second indic model — that needs
+      # 2c-8g and a bigger disk).
+      - key: WHISPER_MODEL_SIZE
+        value: small
+      - key: WHISPER_INDIC_MODEL
+        value: ""
+      - key: GROQ_API_KEY
+        sync: false
+      - key: SARVAM_API_KEY
+        sync: false
+      # Gated Hugging Face weights (IndicTrans2).
+      - key: HF_TOKEN
+        sync: false
+      # MUST equal the shramsetu-api value.
+      - key: AI_INTERNAL_KEY
+        sync: false
+      # GEMINI_API_KEY / GOOGLE_API_KEY are optional fallbacks — add them in
+      # the dashboard to light up Groq->Gemini and Sarvam->Google chains.
+
+  # ── 4. MongoDB — private, only shramsetu-api can reach it ───────────────
+  - type: pserv
+    runtime: image
+    name: shramsetu-db
+    image:
+      url: mongo:8
+    plan: 0.5c-512mb
+    disk:
+      name: mongo-data
+      mountPath: /data/db
+      sizeGB: 1
+    envVars:
+      - key: MONGO_INITDB_ROOT_USERNAME
+        value: root
+      - key: MONGO_INITDB_ROOT_PASSWORD
+        value: shramsetu123

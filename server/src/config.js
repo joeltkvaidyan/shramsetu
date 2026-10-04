@@ -13,15 +13,33 @@ const int = (v, dflt) => {
   return Number.isFinite(n) && n > 0 ? n : dflt;
 };
 
+// MONGODB_URI wins whole (docker-compose sets it). On Render the blueprint
+// only supplies the private host — render.yaml cannot interpolate a full URI
+// (no variable interpolation), so assemble it from parts:
+//   MONGO_HOST (required, via fromService property: host) + optional
+//   MONGO_USER / MONGO_PASSWORD / MONGO_PORT / MONGO_DB.
+// Falls back to "memory" (dev) when neither is set.
+function resolveMongoUri() {
+  if (process.env.MONGODB_URI) return process.env.MONGODB_URI;
+  const host = process.env.MONGO_HOST;
+  if (!host) return "memory";
+  const user = process.env.MONGO_USER || "root";
+  const pass = process.env.MONGO_PASSWORD || "";
+  const port = process.env.MONGO_PORT || "27017";
+  const db = process.env.MONGO_DB || "shramsetu";
+  const auth = pass ? `${encodeURIComponent(user)}:${encodeURIComponent(pass)}@` : "";
+  return `mongodb://${auth}${host}:${port}/${db}?authSource=admin`;
+}
+
 export const config = {
   env: process.env.ENV || "development",
   debug: bool(process.env.DEBUG, true),
   port: int(process.env.PORT, 8000),
 
   // "memory" = embedded MongoDB for development (no install needed).
-  // Production: point MONGODB_URI at a real server, e.g.
-  //   mongodb://user:pass@host:27017/shramsetu
-  mongodbUri: process.env.MONGODB_URI || "memory",
+  // Production: MONGODB_URI (full) or MONGO_HOST (+ parts) — see
+  // resolveMongoUri() above, e.g. mongodb://user:pass@host:27017/shramsetu.
+  mongodbUri: resolveMongoUri(),
   seedDemoData: bool(process.env.SEED_DEMO_DATA, true),
 
   jwtSecret: process.env.JWT_SECRET_KEY || "",

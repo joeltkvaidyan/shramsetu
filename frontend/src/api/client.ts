@@ -34,7 +34,10 @@ export function clearGovToken() {
 }
 
 export const api = axios.create({
-  baseURL: "/api/v1",
+  // Absolute on Render static sites (VITE_API_BASE_URL is baked at build
+  // time, e.g. https://shramsetu-api.onrender.com/api/v1); relative behind
+  // the docker-compose nginx proxy where /api is same-origin.
+  baseURL: import.meta.env.VITE_API_BASE_URL || "/api/v1",
 });
 
 /**

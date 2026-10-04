@@ -189,7 +189,7 @@ export default function GrievanceDetailPage() {
                 {att.content_type.includes("pdf") ? <FileText className="h-5 w-5" aria-hidden="true" /> : <ImageIcon className="h-5 w-5" aria-hidden="true" />}
               </span>
               <a
-                href={`/api/v1/grievances/${id}/attachments/${att.id}/download`}
+                href={`${import.meta.env.VITE_API_BASE_URL || "/api/v1"}/grievances/${id}/attachments/${att.id}/download`}
                 target="_blank"
                 rel="noreferrer"
                 className="flex-1 text-sm text-brand-700 dark:text-brand-400 truncate font-medium"
