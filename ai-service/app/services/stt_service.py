@@ -141,11 +141,25 @@ def _get_local_model(model_size: str | None = None):
     return model
 
 
+def _indic_model_for(language: str | None) -> str | None:
+    """Which fine-tuned Indic checkpoint serves this language.
+    Per-language map first, single WHISPER_INDIC_MODEL override second,
+    None = the general model. English never uses an Indic fine-tune."""
+    if not language or language == "en":
+        return None
+    return (
+        settings.WHISPER_INDIC_MODELS.get(language)
+        or settings.WHISPER_INDIC_MODEL
+        or None
+    )
+
+
 def _model_for(language: str | None):
-    """Pick the model for one request: the stronger Indic model for non-English
-    languages when one is configured, otherwise the general model."""
-    if language and language != "en" and settings.WHISPER_INDIC_MODEL:
-        return _get_local_model(settings.WHISPER_INDIC_MODEL)
+    """Pick the model for one request: the fine-tuned Indic model for
+    non-English languages when one is configured, otherwise the general model."""
+    indic = _indic_model_for(language)
+    if indic:
+        return _get_local_model(indic)
     return _get_local_model()
 
 
@@ -171,10 +185,13 @@ def prewarm() -> None:
     # Optional: STT is the voice path only. Text chat must stay servable on a box
     # where whisper could not load, so neither model gates readiness.
     warmup.REGISTRY.track("stt", _load, required=False)
-    if settings.WHISPER_INDIC_MODEL:
+    # Prewarm only the Hindi fine-tune (the demo language); the other
+    # per-language checkpoints load lazily on first use and stay cached.
+    indic_first = settings.WHISPER_INDIC_MODELS.get("hi") or settings.WHISPER_INDIC_MODEL
+    if indic_first:
         warmup.REGISTRY.track(
             "stt_indic",
-            lambda: _load(settings.WHISPER_INDIC_MODEL),
+            lambda: _load(indic_first),
             required=False,
         )
 
@@ -225,7 +242,7 @@ def _transcribe_local(file_bytes: bytes, filename: str, whisper_language: str | 
         # both the most accurate and the most expensive decode, so running the
         # cheap greedy detect pass before it doubled the latency of every
         # Malayalam/Tamil query (measured 116s -> 19s by reordering).
-        indic_active = bool(whisper_language and settings.WHISPER_INDIC_MODEL)
+        indic_active = bool(_indic_model_for(whisper_language))
         attempts: list[tuple[str | None, str, int, str]] = []
         if indic_active:
             attempts.append((whisper_language, prompt, 5, "forced-beam"))

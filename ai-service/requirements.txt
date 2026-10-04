@@ -6,8 +6,9 @@
 # python-dotenv, httpx, gTTS, python-magic, aiofiles, websockets, email-validator,
 # boto3, coqui-tts, torchaudio, pydub, espeakng-loader, phonemizer, the bare
 # `langchain` meta-package and a direct `groq` pin (langchain-groq pulls it in).
-# Auth now lives entirely in the Node server; TTS is local (Meta MMS VITS via
-# transformers) and translation optionally calls Google Translate over REST.
+# Auth now lives entirely in the Node server; TTS is local (AI4Bharat
+# IndicParler-TTS with a Meta MMS fallback) and translation optionally calls
+# Google Translate over REST.
 
 fastapi==0.115.0
 uvicorn[standard]==0.30.6
@@ -21,6 +22,10 @@ python-multipart==0.0.9
 requests==2.34.2
 
 # --- RAG stack ---
+# transformers is pinned to 4.46.1 because parler-tts (the IndicParler-TTS
+# runtime) hard-requires ==4.46.1; the rest of this set accepts it
+# (sentence-transformers needs >=4.41,<5; faster-whisper never imports it).
+transformers==4.46.1
 # Pinned as a consistent set: all four langchain-* packages below must accept
 # the same langchain-core (1.6.x). community 0.3.5 / huggingface 0.1.2 /
 # groq 0.2.1 demanded core <0.4 and CANNOT resolve against core==1.6.5.
@@ -32,10 +37,14 @@ langchain-huggingface==1.2.2
 langchain-google-genai==4.4.0
 faiss-cpu==1.11.0.post1
 sentence-transformers==3.2.1
-transformers==4.57.6
 torch==2.14.0
 numpy==1.26.4
 tqdm==4.70.0
+
+# --- Local TTS: AI4Bharat IndicParler-TTS (primary) ---
+# Needs espeak-ng on the host (apt: espeak-ng) for phonemization; the MMS
+# fallback needs neither this package nor espeak.
+parler-tts==0.2.3
 
 # --- Local STT (faster-whisper) ---
 faster-whisper==1.2.1

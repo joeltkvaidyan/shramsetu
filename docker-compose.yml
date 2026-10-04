@@ -75,7 +75,8 @@ services:
       - HF_HOME=/app/models/huggingface
       - GOOGLE_API_KEY
       - WHISPER_MODEL_SIZE=large-v3-turbo
-      - WHISPER_INDIC_MODEL=large-v3-turbo
+      # Per-language fine-tuned Whisper checkpoints (WHISPER_INDIC_MODELS in
+      # config.py) lazy-load on first use of each language — no override here.
       - HF_TOKEN
     deploy:
       resources:

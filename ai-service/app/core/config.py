@@ -58,14 +58,27 @@ class Settings(BaseSettings):
     # where `small` collapses into repeated-syllable garbage, so they get the
     # stronger model (lazy-loaded, cached alongside the base one). Empty =
     # every language uses WHISPER_MODEL_SIZE.
+    # WHISPER_INDIC_MODEL is the single-model override; WHISPER_INDIC_MODELS
+    # is the per-language map actually consulted first (fine-tuned OpenAI
+    # Whisper checkpoints per language — loaded lazily for languages the
+    # service actually hears, cached after first use).
     WHISPER_INDIC_MODEL: str = ""
+    WHISPER_INDIC_MODELS: dict[str, str] = {
+        "hi": "vasista22/whisper-hindi-medium",
+        "bn": "bengaliAI/tugstugi_bengaliai-regional-asr_whisper-medium",
+        "te": "parambharat/whisper-small-te",
+        "ta": "parambharat/whisper-small-ta",
+        "ml": "parambharat/whisper-small-ml",
+    }
     # Max audio accepted at /transcribe (MB) — bounds CPU time and memory.
     MAX_AUDIO_MB: int = 15
 
     # --- Voice: text-to-speech ---
-    # Fully LOCAL: Meta MMS VITS (facebook/mms-tts-*) in-process on CPU, one
-    # resident model per active language. No provider keys, no cloud calls —
-    # see app/services/tts_service.py. (Sarvam/Google TTS removed.)
+    # Primary: AI4Bharat IndicParler-TTS (gated HF repo — needs HF_TOKEN with
+    # the auto-approval accepted once; parler-tts + espeak-ng required).
+    # Fallback: local Meta MMS VITS. Both run locally at synthesis time — no
+    # provider keys. See app/services/tts_service.py.
+    TTS_MODEL: str = "ai4bharat/indic-parler-tts"
 
     # --- Query translation (RAG retrieval aid) ---
     # IndicTrans2 translates Indic questions to English BEFORE retrieval so a

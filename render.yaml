@@ -115,14 +115,13 @@ services:
       # HF/whisper/IndicTrans2 weights persist on the disk across restarts.
       - key: HF_HOME
         value: /app/models/huggingface
-      # "small" (the tested default) keeps peak RSS ~2.5GB on this plan.
-      # WHISPER_INDIC_MODEL stays empty so only ONE whisper model is resident
-      # (compose uses large-v3-turbo + a second indic model — that needs
-      # 2c-8g and a bigger disk).
+      # "small" (the tested default) keeps peak RSS low on this plan.
+      # Per-language fine-tuned Whisper checkpoints (WHISPER_INDIC_MODELS)
+      # lazy-load on first use of each language — Hindi is prewarmed.
+      # IndicParler-TTS (3.75 GB) loads only on the first /speak and needs
+      # more RAM than this plan gives; raise the plan before enabling voice.
       - key: WHISPER_MODEL_SIZE
         value: small
-      - key: WHISPER_INDIC_MODEL
-        value: ""
       - key: GROQ_API_KEY
         sync: false
       # Gated Hugging Face weights (IndicTrans2).

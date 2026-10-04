@@ -32,6 +32,7 @@ RUN apt-get update && apt-get install -y --no-cache \
     tesseract-ocr \
     libgomp1 \
     curl \
+    espeak-ng \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy the pre-built wheels + site-packages.

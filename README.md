@@ -212,8 +212,10 @@ Concretely, the four live providers that the platform routes traffic through:
   fallback. The AI service only accepts an internal key from the Node server, so
   the sandbox never calls a provider directly.
 - **STT:** local `faster-whisper` (CPU, no key, no cloud call). Language is
-  auto-detected, then re-decoded with the Indic model for non-English.
-- **TTS:** local Meta MMS VITS (in-process, no API key, no cloud call). Returns
+  auto-detected, then re-decoded with a per-language fine-tuned Whisper
+  checkpoint for non-English (Hindi/Bengali/Telugu/Tamil/Malayalam).
+- **TTS:** AI4Bharat IndicParler-TTS (in-process, gated HF model) with a
+  local Meta MMS VITS fallback. Returns
   `audio/wav`.
 - **Query translation:** English-first retrieval (IndicTrans2 → NLLB fallback).
 

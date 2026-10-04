@@ -45,8 +45,11 @@ wget -qO- http://localhost/                     # frontend: index.html (SPA)
   chain; the AI service only accepts an internal key from the Node server, so
   the sandbox never calls a provider directly.
 - **STT:** local `faster-whisper` (CPU, no key, no cloud call). Language is
-  auto-detected, then re-decoded with the Indic model for non-English.
-- **TTS:** local Meta MMS VITS, in-process (no key, no cloud call).
+  auto-detected, then re-decoded with a per-language fine-tuned Whisper
+  checkpoint for non-English (Hindi/Bengali/Telugu/Tamil/Malayalam).
+- **TTS:** AI4Bharat IndicParler-TTS (primary, gated on Hugging Face —
+  `HF_TOKEN` must have clicked "Agree" once) with local Meta MMS VITS as the
+  automatic fallback.
   `ai-service/app/services/tts_service.py::synthesize_speech()` returns
   `audio/wav`.
 - **Query translation:** English-first retrieval (IndicTrans2 → NLLB fallback).
