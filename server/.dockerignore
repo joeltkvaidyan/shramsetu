@@ -1,0 +1,10 @@
+# Secrets — provided at runtime via docker-compose environment / root .env.
+.env
+.env.*
+
+node_modules/
+logs/
+uploads/
+coverage/
+*.log
+tests/

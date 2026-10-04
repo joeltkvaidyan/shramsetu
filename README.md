@@ -176,12 +176,13 @@ Host and CI both do this: run `docker compose up -d` from the repo root, then
 wait for readiness before pointing the browser at the public origin.
 
 ```bash
-# 1. Point the four env files at real keys (never commit them).
-cp server/.env.example server/.env
-cp ai-service/.env.example ai-service/.env
-# AI_INTERNAL_KEY must be identical in both files (used for the internal-key
-# guard on /ask, /speak, /transcribe). Set: GROQ_API_KEY, GEMINI_API_KEY
-# (Gemini 2.0 flash), SARVAM_API_KEY, GOOGLE_API_KEY, HF_TOKEN.
+# 1. Fill the ROOT .env — docker compose interpolates every bare env name
+#    below from it (gitignored; keys documented in .env.example):
+#      JWT_SECRET_KEY, GROQ_API_KEY, GROQ_MODEL, SARVAM_API_KEY, HF_TOKEN,
+#      AI_INTERNAL_KEY, BOOTSTRAP_ADMIN_PASSWORD, DOC_MASTER_KEY
+#    GEMINI_API_KEY / GOOGLE_API_KEY enable the optional fallbacks.
+#    Containers do NOT read server/.env or ai-service/.env — compose's
+#    `environment:` block is the only runtime source.
 
 # 2. Build & start the stack detached.
 docker compose up -d

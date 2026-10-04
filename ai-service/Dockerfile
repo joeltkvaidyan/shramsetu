@@ -15,7 +15,8 @@ WORKDIR /build
 # Compile wheels so the final image does not pay torch install time.
 RUN pip install --no-cache-dir --upgrade pip uv
 
-# Copy dependency manifests first (best layer caching).COPY requirements.txt requirements-dev.txt* ./
+# Copy the dependency manifests first (best layer caching).
+COPY requirements.txt requirements-dev.txt* ./
 
 RUN uv pip install --system --no-cache -r requirements.txt && \
     uv pip install --system --no-cache -r requirements-dev.txt
@@ -24,22 +25,24 @@ FROM python:3.12-slim AS runtime
 
 WORKDIR /app
 
-# System deps faster-whisper needs for audio decoding.
+# System deps: ffmpeg for faster-whisper audio decoding, curl for the
+# compose healthcheck (python:3.12-slim ships neither).
 RUN apt-get update && apt-get install -y --no-cache \
     ffmpeg \
     tesseract-ocr \
     libgomp1 \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy the pre-built wheels + site-packages.
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
-# Copy the application code.
+# Copy the application code (.dockerignore excludes venv/, models/, .env, ...).
 COPY . .
 
-# Pre-index (rag/index is volume-mounted at runtime; index.pkl + index.faiss
-# build in docker-entrypoint.sh if missing).
+# Sample docs for the RAG index (rag/index is volume-mounted at runtime;
+# the index builds on first boot in the lifespan hook if missing).
 COPY rag/rag.py ./rag/
 COPY rag/sample_docs ./rag/sample_docs
 

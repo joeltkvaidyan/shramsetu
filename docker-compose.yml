@@ -21,6 +21,12 @@ services:
     image: mongo:8
     container_name: shramsetu-mongo
     restart: unless-stopped
+    # Root credentials must match the server's MONGODB_URI below
+    # (mongodb://root:shramsetu123@mongo:27017/...authSource=admin).
+    # Only applied on first boot when the mongo_data volume is empty.
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=shramsetu123
     ports:
       - "27017:27017"
     volumes:
@@ -53,8 +59,10 @@ services:
       test: ["CMD", "sh", "-c", "curl -sf http://localhost:8100/health/ready | grep -q '\"ready\":true'"]
       interval: 20s
       timeout: 10s
-      retries: 15
-      start_period: 120s
+      retries: 30
+      # First boot downloads whisper + IndicTrans2 + embedding models (multi-GB)
+      # before /health/ready flips to true.
+      start_period: 600s
     environment:
       - ENV=production
       - DEBUG=false
@@ -63,6 +71,11 @@ services:
       - SARVAM_API_KEY
       - SARVAM_TTS_MODEL
       - SARVAM_TTS_SPEAKER
+      - GROQ_MODEL
+      - AI_INTERNAL_KEY
+      # Persist HF/whisper/IndicTrans2 downloads in the ai_models volume so a
+      # container restart does not re-download multi-GB models.
+      - HF_HOME=/app/models/huggingface
       - GOOGLE_API_KEY
       - WHISPER_MODEL_SIZE=large-v3-turbo
       - WHISPER_INDIC_MODEL=large-v3-turbo
@@ -93,9 +106,11 @@ services:
       - AI_SERVICE_URL=http://ai-service:8100
       - AI_INTERNAL_KEY
       - BOOTSTRAP_ADMIN_PASSWORD
+      # assertProductionSafe() refuses to boot with OTP echo on (default is on!).
+      - OTP_ECHO_ENABLED=false
       - SEED_DEMO_DATA=false
       - DOC_MASTER_KEY
-      - CORS_ORIGINS=https://shramsetu.example.com,https://www.shramsetu.example.com
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost,http://localhost:5173}
     healthcheck:
       test: ["CMD", "node", "scripts/healthcheck.js"]
       interval: 20s

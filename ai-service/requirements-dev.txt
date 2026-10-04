@@ -4,7 +4,10 @@ pytest==8.3.3
 pytest-asyncio==0.24.0
 # Required by starlette's TestClient (test_warmup.py drives the real FastAPI
 # routes through it). Not a runtime dependency of the service.
-httpx==0.27.2
+# httpx>=0.28.1 is forced by google-genai (runtime, pulled in via
+# requirements.txt); the starlette TestClient works with it because starlette
+# >=0.37 uses httpx.ASGITransport instead of the removed `app=` kwarg.
+httpx==0.28.1
 # Import-time dependency of main.py: the /transcribe route declares
 # `file: UploadFile = File(...)`, and FastAPI raises at app-construction time
 # when the multipart parser is absent. CI installs only this minimal set (no

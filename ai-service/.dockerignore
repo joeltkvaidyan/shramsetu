@@ -1,0 +1,29 @@
+# Secrets — provided at runtime via docker-compose environment / root .env.
+.env
+.env.*
+
+# Local virtualenv and Python caches (venv alone is hundreds of MB).
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Large model & index artefacts — mounted as volumes at runtime
+# (ai_models -> /app/models, ai_index -> /app/rag/index) and (re)built by the
+# app's warm-up hook. Never bake them into the image.
+models/
+rag/index/
+
+# Logs and local caches.
+*.log
+*.err
+.translation_cache.json
+
+# Not part of the runtime image (requirements-dev.txt covers CI separately).
+tests/
+eval/
+.coverage
+htmlcov/

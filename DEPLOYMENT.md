@@ -6,12 +6,13 @@ Run `docker compose up -d` from the repo root, then wait for readiness before
 pointing the browser at the public origin.
 
 ```bash
-# 1. Point the four env files at real keys (never commit them).
-cp server/.env.example server/.env
-cp ai-service/.env.example ai-service/.env
-# AI_INTERNAL_KEY must be identical in both files (used for the internal-key
-# guard on /ask, /speak, /transcribe). Set: GROQ_API_KEY, GEMINI_API_KEY
-# (Gemini 2.0 flash), SARVAM_API_KEY, GOOGLE_API_KEY, HF_TOKEN.
+# 1. Fill the ROOT .env — docker compose interpolates every bare env name
+#    below from it (it is gitignored; copy keys from .env.example):
+#      JWT_SECRET_KEY, GROQ_API_KEY, GROQ_MODEL, SARVAM_API_KEY, HF_TOKEN,
+#      AI_INTERNAL_KEY, BOOTSTRAP_ADMIN_PASSWORD, DOC_MASTER_KEY
+#    GEMINI_API_KEY / GOOGLE_API_KEY are optional fallbacks.
+#    Per-service .env files (server/.env, ai-service/.env) are NOT read by
+#    the containers — the compose `environment:` block is the only source.
 
 # 2. Build & start the stack detached.
 docker compose up -d
@@ -55,8 +56,11 @@ wget -qO- http://localhost/                     # frontend: index.html (SPA)
 - `mongo_data` — persistent MongoDB data.
 - `ai_index` — FAISS index; mounted at runtime so rebuilds don't rebuild the
   index.
-- `ai_models` — Hugging Face model weights (IndicTrans2 etc.).
-- `frontend_uploads` — server-side uploaded media.
+- `ai_models` — Hugging Face model weights (whisper, IndicTrans2, embeddings),
+  pinned via `HF_HOME=/app/models/huggingface` so restarts don't re-download.
+- `frontend_uploads` — mounted but unused by nginx; server uploads live on the
+  server container's writable layer (add a volume there if uploads must survive
+  recreation).
 
 ## Pull the stack onto another host
 
@@ -77,5 +81,6 @@ rebuilds.
   refusals still work without one.
 - Real HTTPS/TLS termination and a real SMS gateway for OTP delivery are still
   needed for a production-grade rollout; this stack is production-*oriented*.
-- The `server/Dockerfile` expects the pre-built `frontend/dist` at build time
-  (the `frontend` service builds first in the compose file).
+  Note: OTPs are only printed to the server log (`sendOtp` in
+  `server/src/routes/auth.js`) — there is no SMS/email channel yet, so mobile
+  login codes are operator-visible, not user-deliverable.

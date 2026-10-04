@@ -10,18 +10,25 @@
 
 fastapi==0.115.0
 uvicorn[standard]==0.30.6
-pydantic==2.9.2
-pydantic-settings==2.5.2
+# pydantic>=2.12.5 required by google-genai (Gemini fallback);
+# pydantic-settings>=2.10.1 required by langchain-community 0.4.x.
+pydantic==2.12.5
+pydantic-settings==2.10.1
 # FastAPI needs multipart parsing for the /transcribe file upload.
 python-multipart==0.0.9
 # REST client for Google/Sarvam translation and TTS providers.
 requests==2.34.2
 
 # --- RAG stack ---
+# Pinned as a consistent set: all four langchain-* packages below must accept
+# the same langchain-core (1.6.x). community 0.3.5 / huggingface 0.1.2 /
+# groq 0.2.1 demanded core <0.4 and CANNOT resolve against core==1.6.5.
 langchain-core==1.6.5
-langchain-community==0.3.5
-langchain-groq==0.2.1
-langchain-huggingface==0.1.2
+langchain-community==0.4.2
+langchain-groq==1.1.3
+langchain-huggingface==1.2.2
+# Gemini fallback in rag_service._resolve_llm_chain() (Groq -> Gemini -> JSON).
+langchain-google-genai==4.4.0
 faiss-cpu==1.11.0.post1
 sentence-transformers==3.2.1
 transformers==4.57.6
