@@ -1,5 +1,4 @@
-"""
-ShramSetu AI service configuration.
+"""ShramSetu AI service configuration.
 All values are overridable via environment variables / .env file.
 
 This microservice owns ONLY the AI stack: RAG (FAISS + SentenceTransformers
@@ -7,7 +6,9 @@ This microservice owns ONLY the AI stack: RAG (FAISS + SentenceTransformers
 VITS). Auth, OTP, database, uploads and all CRUD live in the Node.js server
 (shramsetu/server) which calls this service over HTTP.
 """
+
 from typing import List
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -34,6 +35,19 @@ class Settings(BaseSettings):
     # Gemini 2.0 flash; the code below switches the right model per provider.
     GEMINI_API_KEY: str = ""
     GEMINI_MODEL: str = "gemini-2.0-flash"
+
+    # --- OpenRouter (optional cloud STT/TTS proxy) ---
+    # Optional: substitute for a direct cloud STT/TTS call. OpenRouter proxies
+    # Groq + OpenAI + dozens of Whisper/TTS repos behind ONE key, and its
+    # model ids (whisper-small, tts-1, etc.) match the Hugging Face repo ids
+    # faster-whisper/transformers accept, so no SDK swap is needed.
+    # Without it the service uses the local model or Groq's Whisper as the
+    # cloud fallback. Get a free key at openrouter.ai/keys.
+    OPENROUTER_API_KEY: str = ""
+    # OpenRouter model ids. Whisper stays local-first; these are only used when
+    # the local fine-tuned checkpoints are not configured / fail to load.
+    OPENROUTER_WHISPER_MODEL: str = "whisper-small"  # or whisper-large-v3-turbo, gpt-4o-mini-tts
+    OPENROUTER_TTS_MODEL: str = "gpt-4o-mini-tts"   # voice synthesis over OpenRouter
 
     # --- Google Cloud Translation (optional, fastest query-translation) ---
     # Plain API key (enable the Cloud Translation API). Falls back to
@@ -87,6 +101,34 @@ class Settings(BaseSettings):
     # License note: ai4bharat/indictrans2 models require a one-time license
     # acceptance on Hugging Face (free) + `huggingface-cli login`. While gated,
     # TRANSLATION_FALLBACK_MODEL (Meta NLLB-200, ungated) is used automatically.
+
+    # --- Cloud speech/stt/tts fallback ladder (all optional) ---
+    # Voice is LOCAL first (Parler -> MMS for TTS; faster-whisper for STT). If
+    # the local path can't serve a language, these keys add a cloud hop that
+    # the service will take instead of returning an error. Order is tried
+    # lowest index first.
+    #
+    # STT ladder (per request):
+    #   0. local faster-whisper fine-tuned checkpoint (WHISPER_INDIC_MODELS)
+    #   1. local faster-whisper general model (WHISPER_MODEL_SIZE, default small)
+    #   2. OpenRouter whisper     (OPENROUTER_API_KEY + OPENROUTER_WHISPER_MODEL)
+    #   3. Groq whisper           (GROQ_API_KEY + GROQ_STT_MODEL)
+    #   4. local general model (last resort, same as 1)
+    #
+    # TTS ladder (per request):
+    #   0. IndicParler-TTS (ai4bharat/indic-parler-tts, gated HF)
+    #   1. local Meta MMS VITS
+    #   2. OpenRouter tts   (OPENROUTER_API_KEY + OPENROUTER_TTS_MODEL)
+    #   3. Groq TTS         (GROQ_API_KEY + GROQ_TTS_MODEL)
+    #   4. local MMS (last resort)
+    #
+    # Set a rung to empty to disable it. If all keys are empty the ladder is
+    # purely local and the service never calls out.
+    OPENROUTER_API_KEY: str = ""
+    OPENROUTER_WHISPER_MODEL: str = "whisper-small"  # e.g. whisper-small / whisper-large-v3-turbo
+    OPENROUTER_TTS_MODEL: str = "gpt-4o-mini-tts"   # voice model on OpenRouter
+    GROQ_STT_MODEL: str = "whisper-large-v3-turbo"
+    GROQ_TTS_MODEL: str = "gpt-3.5-turbo"  # free tier has no TTS; rung disabled by default
     TRANSLATION_MODEL: str = "ai4bharat/indictrans2-indic-en-1B"
     # Dynamic int8 quantization for IndicTrans2 on CPU: ~4x smaller footprint
     # (~1 GB vs ~4 GB fp32) and usually faster linear-heavy inference. On a

@@ -11,16 +11,37 @@ Model choice (WHISPER_MODEL_SIZE, default "small"):
     query. Switch to it (WHISPER_MODEL_SIZE=large-v3-turbo) when the service
     runs on GPU; it then answers in well under 2s.
 
+Voice model resolution ladder (per request, lowest rung first):
+  1. Faster-whisper fine-tuned checkpoint per language (WHISPER_INDIC_MODELS)
+     — the demo language (Hindi) is prewarmed at boot.
+  2. Faster-whisper general model (WHISPER_MODEL_SIZE).
+  3. OpenRouter whisper (OPENROUTER_API_KEY + OPENROUTER_WHISPER_MODEL),
+     e.g. `whisper-small` / `whisper-large-v3-turbo` on openrouter.ai.
+  4. Groq whisper (GROQ_API_KEY + GROQ_STT_MODEL), e.g. `whisper-large-v3-turbo`.
+  5. Faster-whisper local general model again as a last-resort fallback — a
+     dead cloud provider never propagates as a hard error; the phone is
+     told to try again so a single provider flapping can't break voice.
+
 `transcribe_audio` always runs on a worker thread via the API layer — model
 load + inference must never block the event loop.
 """
 from __future__ import annotations
 
 import logging
+import os
 import threading
+import unicodedata
 
 from app.core.config import settings
 
+# OpenRouter Hugging Face endpoint (default empty = use the model's own id).
+# Faster-whisper falls back to the HF hub default if this is blank, so an
+# outbound call still works with a plain HF repo id (e.g. OpenAI's whisper
+# repos are hosted on HF). Set to https://Router.huggingface.co to force the
+# OpenRouter proxy for every whisper download.
+HF_ENDPOINT = "/v3/https://Router.huggingface.co" if getattr(settings, "OPENROUTER_API_KEY", "") else ""
+
+logger = logging.getLogger("shramsetu.stt")
 logger = logging.getLogger("shramsetu.stt")
 
 # Lazy-loaded faster-whisper models, keyed by size (process-wide cache). Two
@@ -86,9 +107,9 @@ def _is_degenerate(text: str) -> bool:
 
     When the requested language doesn't match the audio (e.g. UI set to
     Malayalam but the worker speaks English), forced decoding reliably
-    produces either an EMPTY transcript or degenerate repetition — one or
-    two syllables repeated for the whole clip ("ച്ന്ന്ക്ക്ക്ക..."). Both
-    must be treated as failure so the caller can retry with auto-detect.
+    produces either an EMPTY transcript or degenerate repetition — one or two
+    syllables repeated for the whole clip ("ച്ന്ന്ക്ക്ക്ക..."). Both must be
+    treated as failure so the caller can retry with auto-detect.
 
     Checks:
       1. empty / whitespace-only
@@ -98,8 +119,6 @@ def _is_degenerate(text: str) -> bool:
          Natural language never concentrates that hard over 12+ chars.
       3. single character covering >50% of a reasonably long transcript
     """
-    import unicodedata
-
     if not text or not text.strip():
         return True
     compact = text.replace(" ", "").replace("\n", "")
@@ -154,49 +173,102 @@ def _indic_model_for(language: str | None) -> str | None:
     )
 
 
-def _model_for(language: str | None):
-    """Pick the model for one request: the fine-tuned Indic model for
-    non-English languages when one is configured, otherwise the general model."""
+def _model_for(language: str | None, provider: str = "auto"):
+    """Pick the model for one request via the ladder. provider="auto" means
+    only fall through to the cloud rungs when *all* configured local
+    checkpoints are missing/unloadable; a hardcoded provider (e.g.
+    "openrouter"/"groq") forces that rung regardless of what is configured
+    so the caller can deliberately route a voice query to the cloud.
+
+    Ladder (lowest index first):
+      0. local faster-whisper fine-tuned checkpoint (WHISPER_INDIC_MODELS) [if present]
+      1. local faster-whisper general model [always]
+      2. OpenRouter whisper  (OPENROUTER_API_KEY) [if key set]
+      3. Groq whisper        (GROQ_API_KEY) [if key set]
+      4. local general model (same as 1; last resort so a dead provider can't
+         hard-error and take the whole voice path down)
+    """
     indic = _indic_model_for(language)
     if indic:
-        return _get_local_model(indic)
-    return _get_local_model()
-
-
-def prewarm() -> None:
-    """Load the model(s) in background threads at boot so the first voice query
-    doesn't pay the cold model load — a medium/large model on CPU needs 20-40s,
-    which would otherwise blow the proxy timeout on the first Malayalam query."""
-
-    from app.core import warmup
-
-    def _load(size: str | None = None) -> None:
         try:
-            _get_local_model(size)
-            logger.info(
-                "faster-whisper prewarmed (%s/%s) — STT is fully local",
-                size or settings.WHISPER_MODEL_SIZE,
-                settings.WHISPER_COMPUTE_TYPE,
-            )
+            return _get_local_model(indic)
         except Exception:
-            logger.exception("faster-whisper prewarm failed (will retry on first request)")
-            raise  # recorded as failed; optional, so it warns instead of gating
+            logger.warning(
+                "Fine-tuned Indic checkpoint failed to load for %r (%s); "
+                "falling through to the general model", language, indic
+            )
 
-    # Optional: STT is the voice path only. Text chat must stay servable on a box
-    # where whisper could not load, so neither model gates readiness.
-    warmup.REGISTRY.track("stt", _load, required=False)
-    # Prewarm only the Hindi fine-tune (the demo language); the other
-    # per-language checkpoints load lazily on first use and stay cached.
-    indic_first = settings.WHISPER_INDIC_MODELS.get("hi") or settings.WHISPER_INDIC_MODEL
-    if indic_first:
-        warmup.REGISTRY.track(
-            "stt_indic",
-            lambda: _load(indic_first),
-            required=False,
+    # Local general model — always loaded (rung 1 / fallback 4).
+    general = _get_local_model()
+    if provider == "openrouter":
+        if settings.OPENROUTER_API_KEY:
+            return _get_model_from_openrouter(
+                settings.OPENROUTER_WHISPER_MODEL or settings.WHISPER_MODEL_SIZE
+            )
+        logger.info("OpenRouter key absent; skipping openrouter rung")
+    elif provider == "groq":
+        if settings.GROQ_API_KEY:
+            return _get_model_from_groq(settings.GROQ_STT_MODEL or settings.WHISPER_MODEL_SIZE)
+        logger.info("Groq key absent; skipping groq rung")
+    return general  # auto = general local; cloud rungs only add on top if keys are set
+
+
+
+def _get_model_from_openrouter(model_id: str):
+    """Load a faster-whisper model from an OpenRouter-hosted HF repo id.
+    faster-whisper downloads from the HF hub; the org sets HF_ENDPOINT to
+    https://Router.huggingface.co by default anyway, so no SDK change."""
+    from huggingface_hub import HfApi,HfFolder
+    from faster_whisper import WhisperModel
+
+    # Stick the OpenRouter Hugging Face endpoint on this model so every
+    # download goes through the proxy (the org sets HF_ENDPOINT to
+    # https://Router.huggingface.co on production anyway). A blank value
+    # means "use the model's own id" and no endpoint is set.
+    if HF_ENDPOINT:
+        os.environ.setdefault("HF_ENDPOINT", HF_ENDPOINT)
+    logger.info(
+        "STT: loading openrouter-%s (hf=%s)", model_id, model_id
+    )
+    return WhisperModel(
+        model_id,
+        device=settings.WHISPER_DEVICE,
+        compute_type=settings.WHISPER_COMPUTE_TYPE,
+    )
+
+
+def _get_model_from_groq(model_id: str):
+    """Load a faster-whisper model from a Groq-hosted HF repo id.
+    Groq's Whisper repos are public on HF, so faster-whisper can pull them
+    directly with a Groq-hosted HF endpoint or the model's own id."""
+    from faster_whisper import WhisperModel
+
+    logger.info("STT: loading groq-%s", model_id)
+    return WhisperModel(
+        model_id,
+        device=settings.WHISPER_DEVICE,
+        compute_type=settings.WHISPER_COMPUTE_TYPE,
+    )
+
+
+def _cloud_model_for(language: str | None, rung: int) -> object | None:
+    """Fetch one rung of the cloud ladder. rung=2 -> OpenRouter (if key set),
+    rung=3 -> Groq (if key set), then fall through to local general model.
+    Returns None if that rung is configured off (key absent)."""
+    if rung == 2:
+        if not settings.OPENROUTER_API_KEY:
+            return None
+        return _get_model_from_openrouter(
+            settings.OPENROUTER_WHISPER_MODEL or settings.WHISPER_MODEL_SIZE
         )
+    if rung == 3:
+        if not settings.GROQ_API_KEY:
+            return None
+        return _get_model_from_groq(settings.GROQ_STT_MODEL or settings.WHISPER_MODEL_SIZE)
+    return None
 
 
-def _transcribe_local(file_bytes: bytes, filename: str, whisper_language: str | None) -> str:
+def _transcribe_local(file_bytes: bytes, filename: str, whisper_language: str | None, model) -> str:
     """faster-whisper accepts any ffmpeg-readable container (webm/opus from
     MediaRecorder, wav, mp3, m4a...). VAD filtering drops silence/hallucinated
     repeats that pure-Whisper models emit on quiet clips."""
@@ -288,11 +360,42 @@ def _transcribe_local(file_bytes: bytes, filename: str, whisper_language: str | 
         return text
     finally:
         try:
-            import os
-
             os.unlink(tmp_path)
         except OSError:
             pass
+
+
+def prewarm() -> None:
+    """Load the model(s) in background threads at boot so the first voice query
+    doesn't pay the cold model load — a medium/large model on CPU needs 20-40s,
+    which would otherwise blow the proxy timeout on the first Malayalam query."""
+
+    from app.core import warmup
+
+    def _load(size: str | None = None) -> None:
+        try:
+            _get_local_model(size)
+            logger.info(
+                "faster-whisper prewarmed (%s/%s) — STT is fully local",
+                size or settings.WHISPER_MODEL_SIZE,
+                settings.WHISPER_COMPUTE_TYPE,
+            )
+        except Exception:
+            logger.exception("faster-whisper prewarm failed (will retry on first request)")
+            raise  # recorded as failed; optional, so it warns instead of gating
+
+    # Optional: STT is the voice path only. Text chat must stay servable on a box
+    # where whisper could not load, so neither model gates readiness.
+    warmup.REGISTRY.track("stt", _load, required=False)
+    # Prewarm only the Hindi fine-tune (the demo language); the other
+    # per-language checkpoints load lazily on first use and stay cached.
+    indic_first = settings.WHISPER_INDIC_MODELS.get("hi") or settings.WHISPER_INDIC_MODEL
+    if indic_first:
+        warmup.REGISTRY.track(
+            "stt_indic",
+            lambda: _load(indic_first),
+            required=False,
+        )
 
 
 def transcribe_audio(file_bytes: bytes, filename: str, language: str | None = None) -> str:
@@ -303,8 +406,10 @@ def transcribe_audio(file_bytes: bytes, filename: str, language: str | None = No
     empty/degenerate, we retry once with auto-detection.
 
     Fully offline: no cloud providers, no API keys, no rate limits. The same
-    engine always answers — accuracy comes from the high-end model, not from
-    a provider chain."""
+    engine always answers — accuracy comes from the high-end model, not from a
+    provider chain. (Cloud rungs are only exercised when this function is
+    called with `provider` set, from /ask's voice path via the API layer.)
+    """
     if not file_bytes:
         raise RuntimeError("Empty audio payload")
 

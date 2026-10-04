@@ -23,13 +23,12 @@ from __future__ import annotations
 
 import io
 import logging
+import os
 import re
 import threading
 import wave
 
 from app.core.config import settings
-
-logger = logging.getLogger("shramsetu.tts")
 
 _MAX_TTS_CHARS = 5000
 # Parler is autoregressive: long single inputs degrade prosody and grow
@@ -55,6 +54,7 @@ _parler_lock = threading.Lock()
 _parler: tuple | None = None  # (model, tokenizer, description_tokenizer)
 
 
+
 def _get_parler() -> tuple:
     """Lazily load IndicParler-TTS once (model + both tokenizers)."""
     global _parler
@@ -68,6 +68,7 @@ def _get_parler() -> tuple:
 
         name = settings.TTS_MODEL
         logger.info("TTS: loading IndicParler-TTS (%s) — first load downloads ~3.75 GB", name)
+        from transformers import AutoTokenizer
         model = ParlerTTSForConditionalGeneration.from_pretrained(name).eval()
         tokenizer = AutoTokenizer.from_pretrained(name)
         desc_name = model.config.text_encoder._name_or_path
@@ -103,6 +104,7 @@ def _synthesize_parler(text: str, language: str) -> tuple[bytes, int]:
                     input_ids=input_ids,
                     prompt_input_ids=desc_ids,
                 )
+
         pcm = (
             generation.audio.squeeze()
             .clamp(-1.0, 1.0)
