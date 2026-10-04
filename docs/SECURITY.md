@@ -89,7 +89,7 @@ Final-year project scope, stated plainly: what is enforced, what is not.
    deployment needs a shared store (the AI service keeps a commented
    Redis hook).
 6. **Chat attachments/voice rely on third-party AI providers** (Groq,
-   Sarvam, Google) after PII stripping; workers consent explicitly at
+   Google) after PII stripping; workers consent explicitly at
    registration, but content is still processed outside the platform.
 7. **Prompt-injection defence is layered but not absolute.** Retrieval-time
    injection questions are refused (measured 11/11 in the eval), and the

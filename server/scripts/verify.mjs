@@ -179,7 +179,7 @@ check("chat/ask grounded answer (AI reachable, Groq key OK)", aiAnswered, `groun
 const hist = await (await fetch(`${B}/chat/history`, { headers: wh })).json();
 check("chat history persisted (user+assistant)", hist.length >= 2 && hist[hist.length - 1].role === "assistant", `${hist.length} rows`);
 
-// ── 10. TTS through the proxy (Sarvam/Google audio) ──────────────
+// ── 10. TTS through the proxy (local audio) ──────────────────────
 r = await fetch(`${B}/chat/speak?text=${encodeURIComponent("Hello, this is ShramSetu.")}&language=en`, { headers: wh });
 const ct = r.headers.get("content-type") || "";
 const bytes = (await r.arrayBuffer()).byteLength;
@@ -198,12 +198,12 @@ try {
   });
   if (up.status === 503 && /all tts providers failed/i.test(await up.text())) {
     providerDown = true;
-    providerWhy = "ai-service reports every TTS provider failed (Sarvam/Google keys absent or out of credit)";
+    providerWhy = "ai-service reports the local TTS engine failed (model could not load on this host)";
   }
 } catch { /* ai-service down is already reported by the readiness check */ }
 
 if (providerDown) {
-  skip("chat/speak returns audio", `${providerWhy}; set a working SARVAM_API_KEY or GOOGLE_API_KEY to run this check`);
+  skip("chat/speak returns audio", `${providerWhy}; check the ai-service logs for the model-load error`);
 } else {
   check("chat/speak returns audio", r.status === 200 && ct.startsWith("audio/") && bytes > 10000, `${ct} ${bytes}B`);
 }

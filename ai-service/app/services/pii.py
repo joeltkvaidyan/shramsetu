@@ -1,8 +1,8 @@
 """PII scrubbing for text that leaves the box.
 
 Voice questions and chat text may contain personal identifiers. Before any
-text is sent to an EXTERNAL provider (Groq LLM, Sarvam MT/TTS, Google
-Translate/TTS), obvious identifiers are replaced with placeholders:
+text is sent to an EXTERNAL provider (Groq LLM, Google Translate),
+obvious identifiers are replaced with placeholders:
 
   - 10-digit Indian mobile numbers (starting 6-9)      → <phone>
   - 12-digit Aadhaar-like numbers, spaced or not       → <id>

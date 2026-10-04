@@ -1,25 +1,28 @@
-"""Text-to-speech with cloud providers (Sarvam / Google Cloud).
+"""Text-to-speech — fully LOCAL neural TTS (Meta MMS VITS via transformers).
 
-Provider chain (each falls to the next on ANY failure):
-  sarvam -> google
+No cloud providers, no API keys, no network round trips: Sarvam and Google
+TTS were removed. Synthesis runs in-process on CPU.
 
-Selection is via TTS_PROVIDER in settings/.env:
-  - "sarvam" (default): Sarvam Bulbul v3 neural voices — natural voices built
-    for Indian languages, code-mixed text and number normalization. Free
-    tier, ~1s server round trip.
-  - "google": Google Cloud TTS v1 (GOOGLE_API_KEY, needs billing).
+Engine: facebook/mms-tts-* (VITS, ~60-150 MB per language). This is the
+fairseq-VITS family the service used before moving to the cloud, and unlike
+Coqui's model zoo it covers ALL six platform languages (en, hi, bn, ta, te,
+ml). A sentence synthesizes in roughly 0.3-0.8s on CPU once the model is
+loaded.
 
-Local neural TTS (Coqui fairseq VITS, gTTS) was deliberately removed:
-the cloud engines are faster (0.7-1.3s vs 2-6s local synthesis), sound far
-more natural, and dropping the resident Coqui models frees ~700MB RAM for
-the local Whisper STT model. Both providers chunk long text above their REST
-caps and concatenate the PCM. Output is always WAV (PCM 16-bit mono 22050 Hz).
+RAM policy: a single-slot cache keeps only the ACTIVE language resident
+(~150 MB) so whisper and IndicTrans2 keep the rest of the box. The first
+request in a different language pays a one-time load from the HF disk cache
+(~1-2s); prewarm() loads English at boot so the common case is instant.
+
+Output contract is unchanged: WAV bytes (PCM 16-bit mono), media type
+audio/wav — MMS models emit 16 kHz.
 """
 from __future__ import annotations
 
 import io
 import logging
 import re
+import threading
 import wave
 
 from app.core.config import settings
@@ -27,120 +30,120 @@ from app.core.config import settings
 logger = logging.getLogger("shramsetu.tts")
 
 _MAX_TTS_CHARS = 5000
+# Long single inputs degrade VITS prosody and grow latency super-linearly;
+# pack sentences into chunks at most this many characters.
+_MAX_CHUNK_CHARS = 300
 
-
-def _wav_pcm(wav_bytes: bytes) -> bytes:
-    """Extract raw PCM frames from a WAV (walks RIFF chunks properly —
-    robust to extra metadata)."""
-    with wave.open(io.BytesIO(wav_bytes), "rb") as w:
-        return w.readframes(w.getnframes())
-
-
-# Platform language -> cloud locale codes (Sarvam AND Google use these).
-_CLOUD_LANG: dict[str, str] = {
-    "en": "en-IN",
-    "hi": "hi-IN",
-    "bn": "bn-IN",
-    "te": "te-IN",
-    "ta": "ta-IN",
-    "ml": "ml-IN",
+# Platform language -> Meta MMS VITS checkpoint (all ungated, HF cacheable).
+_MMS_MODEL: dict[str, str] = {
+    "en": "facebook/mms-tts-eng",
+    "hi": "facebook/mms-tts-hin",
+    "bn": "facebook/mms-tts-ben",
+    "ta": "facebook/mms-tts-tam",
+    "te": "facebook/mms-tts-tel",
+    "ml": "facebook/mms-tts-mal",
 }
 
+_cache_lock = threading.Lock()
+_loaded_lang: str | None = None
+_loaded_pair: tuple | None = None  # (tokenizer, model) for _loaded_lang
 
-def _split_sentences(text: str) -> list[str]:
-    """Split into sentence-sized chunks — long single inputs degrade neural
-    voices and hit REST request-size caps."""
+
+def _get_model(language: str) -> tuple:
+    """Return (tokenizer, model) for the language, swapping the single
+    resident slot when the language changes. Thread-safe."""
+    global _loaded_lang, _loaded_pair
+
+    if _loaded_lang == language and _loaded_pair is not None:
+        return _loaded_pair
+    with _cache_lock:
+        if _loaded_lang == language and _loaded_pair is not None:
+            return _loaded_pair
+        from transformers import AutoTokenizer, VitsModel
+
+        name = _MMS_MODEL[language]
+        tokenizer = AutoTokenizer.from_pretrained(name)
+        model = VitsModel.from_pretrained(name)
+        model.eval()
+        _loaded_pair = (tokenizer, model)
+        _loaded_lang = language
+        logger.info("TTS: local model %s resident", name)
+        return _loaded_pair
+
+
+def _split_chunks(text: str) -> list[str]:
+    """Sentence-split, then pack into <=_MAX_CHUNK_CHARS pieces."""
     parts = re.split(r"(?<=[।.!?।\n])\s+", text.strip())
-    return [p.strip() for p in parts if p.strip()][:60]
-
-
-def _synthesize_sarvam(text: str, language: str) -> bytes:
-    """Sarvam Bulbul v3 — natural neural voices built for Indian languages
-    (handles code-mixed text and number normalization natively). Free tier,
-    ~1s server round trip. Returns WAV bytes; chunks text above the 2500
-    char/request REST cap and concatenates the PCM."""
-    import base64
-
-    import requests
-
-    if not settings.SARVAM_API_KEY:
-        raise RuntimeError("TTS_PROVIDER=sarvam but SARVAM_API_KEY is not set")
-
-    lang_code = _CLOUD_LANG.get(language)
-    if lang_code is None:
-        raise RuntimeError(f"Sarvam TTS has no voice for language={language!r}")
-
-    # Split on sentence boundaries into <=2400-char chunks (REST cap 2500).
+    parts = [p.strip() for p in parts if p.strip()]
     chunks: list[str] = []
     current = ""
-    for part in _split_sentences(text):
-        if current and len(current) + len(part) + 1 > 2400:
+    for part in parts:
+        if current and len(current) + len(part) + 1 > _MAX_CHUNK_CHARS:
             chunks.append(current)
             current = part
         else:
             current = f"{current} {part}".strip()
     if current:
         chunks.append(current)
+    return chunks[:60]
+
+
+def _synthesize_local(text: str, language: str) -> bytes:
+    """Synthesize with the local MMS VITS model. Returns WAV bytes
+    (PCM 16-bit mono, the model's native 16 kHz)."""
+    import torch
+
+    tokenizer, model = _get_model(language)
+    sample_rate = int(getattr(model.config, "sampling_rate", 16000))
 
     pcm_parts: list[bytes] = []
-    for chunk in chunks:
-        response = requests.post(
-            "https://api.sarvam.ai/text-to-speech",
-            headers={"api-subscription-key": settings.SARVAM_API_KEY},
-            json={
-                "text": chunk,
-                "language_code": lang_code,
-                "speaker": settings.SARVAM_TTS_SPEAKER,
-                "model": settings.SARVAM_TTS_MODEL,
-            },
-            timeout=30,
+    for chunk in _split_chunks(text):
+        inputs = tokenizer(
+            chunk,
+            return_tensors="pt",
+            truncation=True,
+            max_length=_MAX_CHUNK_CHARS,
         )
-        response.raise_for_status()
-        audios = response.json().get("audios") or []
-        if not audios:
-            raise RuntimeError("Sarvam TTS returned no audio")
-        wav = base64.b64decode("".join(audios))
-        pcm_parts.append(_wav_pcm(wav))
-        pcm_parts.append(b"\x00\x00" * int(22050 * 0.18))  # 180ms inter-chunk gap
+        with torch.no_grad():
+            waveform = model(**inputs).waveform
+        pcm = (
+            waveform.squeeze()
+            .clamp(-1.0, 1.0)
+            .mul(32767)
+            .to(torch.int16)
+            .numpy()
+            .astype("<i2")
+            .tobytes()
+        )
+        pcm_parts.append(pcm)
+        pcm_parts.append(b"\x00\x00" * int(sample_rate * 0.12))  # 120ms pause
+
+    if not pcm_parts:
+        raise RuntimeError("local TTS produced no audio")
 
     buf = io.BytesIO()
     with wave.open(buf, "wb") as w:
         w.setnchannels(1)
         w.setsampwidth(2)
-        w.setframerate(22050)
+        w.setframerate(sample_rate)
         w.writeframes(b"".join(pcm_parts))
     return buf.getvalue()
 
 
-def _synthesize_google(text: str, language: str) -> bytes:
-    """Google Cloud Text-to-Speech v1 (plain API key, no SDK). Needs billing
-    enabled on the Google project; kept as the automatic fallback behind
-    Sarvam."""
-    import base64
+def prewarm() -> None:
+    """Load the English voice at boot in a warm-up thread so the first
+    /speak answers without a model load. Optional: a failed load must not
+    hold /health/ready at 503 (it retries on first use)."""
+    from app.core import warmup
 
-    import requests
+    def _load():
+        try:
+            _get_model("en")
+        except Exception:
+            logger.exception("TTS prewarm failed (will retry on first use)")
+            raise
 
-    if not settings.GOOGLE_API_KEY:
-        raise RuntimeError("TTS fallback=google but GOOGLE_API_KEY is not set")
-
-    lang_code = _CLOUD_LANG.get(language)
-    if lang_code is None:
-        raise RuntimeError(f"Google TTS has no configured locale for language={language!r}")
-
-    response = requests.post(
-        f"https://texttospeech.googleapis.com/v1/text:synthesize?key={settings.GOOGLE_API_KEY}",
-        json={
-            "input": {"text": text[:2500]},
-            "voice": {"languageCode": lang_code},
-            "audioConfig": {"audioEncoding": "LINEAR16", "sampleRateHertz": 22050},
-        },
-        timeout=30,
-    )
-    response.raise_for_status()
-    audio_b64 = response.json().get("audioContent")
-    if not audio_b64:
-        raise RuntimeError("Google TTS returned no audio")
-    return base64.b64decode(audio_b64)
+    warmup.REGISTRY.track("tts", _load, required=False)
 
 
 def synthesize_speech(text: str, language: str = "en") -> tuple[bytes, str]:
@@ -153,28 +156,25 @@ def synthesize_speech(text: str, language: str = "en") -> tuple[bytes, str]:
     Returns:
         (audio_bytes, media_type) — always 'audio/wav'.
 
-    Provider chain (each falls to the next on ANY failure):
-      sarvam -> google      (Sarvam: natural Indian voices, free tier;
-                             Google Cloud: needs billing)
+    Fully local: one in-process MMS VITS model, no provider chain.
     """
     if not text or not text.strip():
         raise RuntimeError("Empty text — nothing to speak.")
 
     language = (language or "en").split("-", 1)[0].lower()
+    if language not in _MMS_MODEL:
+        raise RuntimeError(f"Local TTS has no voice for language={language!r}")
     text = text.strip()[:_MAX_TTS_CHARS]
 
-    chain: list[str] = {
-        "sarvam": ["sarvam", "google"],
-        "google": ["google", "sarvam"],
-        # Unknown/legacy values (coqui/gtts were removed) -> default chain.
-    }.get(settings.TTS_PROVIDER, ["sarvam", "google"])
-
-    for provider in chain:
-        try:
-            if provider == "sarvam":
-                return _synthesize_sarvam(text, language), "audio/wav"
-            return _synthesize_google(text, language), "audio/wav"
-        except Exception:
-            logger.exception("TTS provider=%s failed for language=%r; trying next", provider, language)
-
-    raise RuntimeError(f"All TTS providers failed for language={language!r}")
+    try:
+        return _synthesize_local(text, language), "audio/wav"
+    except RuntimeError:
+        raise
+    except Exception as exc:
+        # Keep the legacy 503 phrase the Node proxy and verify.mjs rely on:
+        # the local engine failing is wire-compatible with the old cloud
+        # provider chain failing (model download blocked, disk full, ...).
+        raise RuntimeError(
+            f"All TTS providers failed for language={language!r} "
+            f"(local engine: {type(exc).__name__}: {exc})"
+        ) from exc

@@ -1,8 +1,9 @@
 /**
- * ProtectedRoute decides, in one component, whether a worker sees a page, a
- * spinner, an error, or a login redirect. Every one of those four outcomes is
- * security-relevant: the wrong default exposes a screen to an unauthenticated
- * visitor, and the "right" default that renders a blank page is its own bug.
+ * ProtectedRoute decides, in one component, whether a worker sees a page,
+ * nothing (auth still resolving), an error, or a login redirect. Every one of
+ * those outcomes is security-relevant: the wrong default exposes a screen to
+ * an unauthenticated visitor. Note there is deliberately NO loading display
+ * anymore — while auth resolves the route renders nothing.
  *
  * useAuth is mocked rather than driven through a real AuthContext: this is a
  * test of the branch logic, and a fake context keeps the four states explicit.
@@ -19,9 +20,8 @@ vi.mock("../store/AuthContext", () => ({
   useAuth: () => useAuth(),
 }));
 
-// The component asks for t("common.loading") / t("common.error") /
-// t("common.retry"); echo the key so the assertions are stable regardless of
-// which locale is loaded.
+// The component asks for t("common.error") / t("common.retry"); echo the key
+// so the assertions are stable regardless of which locale is loaded.
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
@@ -62,11 +62,12 @@ function renderAt(path: string) {
 }
 
 describe("ProtectedRoute", () => {
-  it("shows a loading state and NOT the page while auth is resolving", () => {
+  it("renders nothing at all while auth is resolving — no loading display, no page", () => {
     setAuth({ loading: true });
     renderAt("/grievances");
-    expect(screen.getByText("common.loading")).toBeInTheDocument();
+    expect(screen.queryByText("common.loading")).not.toBeInTheDocument();
     expect(screen.queryByText("grievances content")).not.toBeInTheDocument();
+    expect(screen.queryByText("login page")).not.toBeInTheDocument();
   });
 
   it("redirects an anonymous visitor to the worker login", () => {
@@ -107,10 +108,11 @@ describe("ProtectedRoute", () => {
     expect(screen.getByText("grievances content")).toBeInTheDocument();
   });
 
-  it("prefers the loading state over the error state", () => {
+  it("prefers the resolving state over the error state", () => {
     setAuth({ loading: true, bootError: new Error("network down") });
     renderAt("/grievances");
-    expect(screen.getByText("common.loading")).toBeInTheDocument();
+    expect(screen.queryByText("common.loading")).not.toBeInTheDocument();
     expect(screen.queryByText("common.error")).not.toBeInTheDocument();
+    expect(screen.queryByText("grievances content")).not.toBeInTheDocument();
   });
 });

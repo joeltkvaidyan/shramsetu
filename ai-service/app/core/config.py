@@ -3,8 +3,8 @@ ShramSetu AI service configuration.
 All values are overridable via environment variables / .env file.
 
 This microservice owns ONLY the AI stack: RAG (FAISS + SentenceTransformers
-+ Groq), speech-to-text (faster-whisper) and text-to-speech (Coqui). Auth,
-OTP, database, uploads and all CRUD live in the Node.js server
++ Groq), speech-to-text (faster-whisper) and text-to-speech (local Meta MMS
+VITS). Auth, OTP, database, uploads and all CRUD live in the Node.js server
 (shramsetu/server) which calls this service over HTTP.
 """
 from typing import List
@@ -35,17 +35,6 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str = ""
     GEMINI_MODEL: str = "gemini-2.0-flash"
 
-    # --- Sarvam AI (Indian-language-native TTS + MT, free tier) ---
-    # Get a key at dashboard.sarvam.ai. Used by TTS_PROVIDER=sarvam
-    # (Bulbul v3 natural neural voices) and the Sarvam MT translation engine.
-    SARVAM_API_KEY: str = ""
-    SARVAM_TTS_MODEL: str = "bulbul:v3"
-    SARVAM_TTS_SPEAKER: str = "shubh"
-
-    # --- Google Cloud speech (optional) ---
-    # Plain API key (enable Cloud Speech-to-Text + Text-to-Speech APIs).
-    # Requires billing — the free Sarvam/Groq tiers are the default path.
-    GOOGLE_API_KEY: str = ""
     # --- Google Cloud Translation (optional, fastest query-translation) ---
     # Plain API key (enable the Cloud Translation API). Falls back to
     # GOOGLE_API_KEY if unset; when neither is set the local IndicTrans2 /
@@ -74,11 +63,9 @@ class Settings(BaseSettings):
     MAX_AUDIO_MB: int = 15
 
     # --- Voice: text-to-speech ---
-    # "sarvam" : Sarvam Bulbul v3 neural voices (free tier, natural, ~1s)
-    # "google": Google Cloud TTS (GOOGLE_API_KEY, needs billing)
-    # Fallback order: sarvam -> google. Local Coqui/gTTS engines were removed
-    # (slower and lower quality than the cloud engines).
-    TTS_PROVIDER: str = "sarvam"
+    # Fully LOCAL: Meta MMS VITS (facebook/mms-tts-*) in-process on CPU, one
+    # resident model per active language. No provider keys, no cloud calls —
+    # see app/services/tts_service.py. (Sarvam/Google TTS removed.)
 
     # --- Query translation (RAG retrieval aid) ---
     # IndicTrans2 translates Indic questions to English BEFORE retrieval so a
@@ -94,9 +81,9 @@ class Settings(BaseSettings):
     # requests. Set TRANSLATION_QUANTIZE=false to keep full fp32 weights.
     TRANSLATION_QUANTIZE: bool = True
     TRANSLATION_FALLBACK_MODEL: str = "facebook/nllb-200-distilled-600M"
-    # HTTP read timeout (seconds) for cloud translation calls. Sarvam MT
-    # regularly exceeds 10s on a cold connection and a timeout costs the whole
-    # per-request latency budget before the chain can fall through.
+    # HTTP read timeout (seconds) for cloud translation calls (Google). A
+    # timeout costs the whole per-request latency budget before the chain can
+    # fall through.
     TRANSLATE_HTTP_TIMEOUT: int = 20
     TRANSLATION_ENABLED: bool = True
     # Which engine to use: "auto" = IndicTrans2 when loadable (license

@@ -18,7 +18,7 @@ repository. Every file path below exists — open it live in your viva.*
 > an encrypted document wallet, and file grievances with auto-derived
 > priority and SLA. An AI assistant answers welfare-scheme questions via
 > **RAG (Retrieval-Augmented Generation)** over curated government documents
-> — with Whisper for speech input and Sarvam/Google for speech output.
+> — with Whisper for speech input and a local neural voice for speech output.
 > Government officers get a **fail-closed, jurisdiction-scoped** dashboard
 > with notifications and audit logs.
 
@@ -252,10 +252,9 @@ retrieval refusals across a 50-question, 6-language suite.
 
 - **STT:** faster-whisper (local, small/int8), UI language passed as a hint
   with a degenerate-output detector that retries with auto-detect.
-- **TTS:** Sarvam → Google Cloud → honest error (a REST provider chain —
-  the old local Coqui stack was removed). Long text is chunked per provider
-  limits.
-- **Translation:** Google Translate / Sarvam cloud first, local
+- **TTS:** local Meta MMS VITS (in-process, no provider chain) — honest error
+  if the model fails to load. Long text is sentence-chunked before synthesis.
+- **Translation:** Google Translate (if a key is set) first, local
   IndicTrans2/NLLB fallback — translation is **retrieval-side only**; the
   answer is always generated in the worker's language.
 - All external calls are PII-scrubbed first (`app/services/pii.py`), and the

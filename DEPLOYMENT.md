@@ -8,7 +8,7 @@ pointing the browser at the public origin.
 ```bash
 # 1. Fill the ROOT .env — docker compose interpolates every bare env name
 #    below from it (it is gitignored; copy keys from .env.example):
-#      JWT_SECRET_KEY, GROQ_API_KEY, GROQ_MODEL, SARVAM_API_KEY, HF_TOKEN,
+#      JWT_SECRET_KEY, GROQ_API_KEY, GROQ_MODEL, HF_TOKEN,
 #      AI_INTERNAL_KEY, BOOTSTRAP_ADMIN_PASSWORD, DOC_MASTER_KEY
 #    GEMINI_API_KEY / GOOGLE_API_KEY are optional fallbacks.
 #    Per-service .env files (server/.env, ai-service/.env) are NOT read by
@@ -46,7 +46,7 @@ wget -qO- http://localhost/                     # frontend: index.html (SPA)
   the sandbox never calls a provider directly.
 - **STT:** local `faster-whisper` (CPU, no key, no cloud call). Language is
   auto-detected, then re-decoded with the Indic model for non-English.
-- **TTS:** Sarvam Bulbul (primary) → Google Cloud TTS (fallback).
+- **TTS:** local Meta MMS VITS, in-process (no key, no cloud call).
   `ai-service/app/services/tts_service.py::synthesize_speech()` returns
   `audio/wav`.
 - **Query translation:** English-first retrieval (IndicTrans2 → NLLB fallback).
@@ -100,7 +100,7 @@ Blueprint, mapped one service per Render resource (Render does not run
 
 - **Secrets** are `sync: false` in the blueprint (`JWT_SECRET_KEY`,
   `BOOTSTRAP_ADMIN_PASSWORD`, `DOC_MASTER_KEY`, `AI_INTERNAL_KEY`,
-  `GROQ_API_KEY`, `SARVAM_API_KEY`, `HF_TOKEN`). The Render dashboard prompts
+  `GROQ_API_KEY`, `HF_TOKEN`). The Render dashboard prompts
   for them during blueprint creation; blueprints created through the API
   leave them empty until set — set them before first boot, and keep
   `AI_INTERNAL_KEY` **identical** on `shramsetu-api` and `shramsetu-ai`.

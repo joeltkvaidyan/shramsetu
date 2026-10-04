@@ -485,7 +485,7 @@ def answer_question(question: str, language: str = "en") -> dict:
     context = _format_context(retrieved)
 
     try:
-        llm = rag_service._get_llm()
+        llm = _get_llm()
     except RuntimeError:
         logger.exception("LLM unavailable (likely no Groq or Gemini key set)")
         return _error_response(language)

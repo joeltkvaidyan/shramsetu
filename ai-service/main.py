@@ -2,7 +2,7 @@
 
 Internal API consumed only by the Node.js backend:
   POST /ask        {question, language}         → ChatAnswer JSON (RAG + Groq)
-  GET  /speak      ?text=&language=             → audio/wav (Sarvam → Google TTS)
+  GET  /speak      ?text=&language=             → audio/wav (local MMS VITS)
   POST /transcribe ?language= (multipart: file) → {text} (local faster-whisper)
   GET  /health     → liveness + warm-up state (always 200)
   GET  /health/live  → liveness only (always 200)
@@ -12,7 +12,7 @@ Access control:
   - Every route except the three health paths requires X-Internal-Key when
     AI_INTERNAL_KEY is set (the Node server sends it from its own env).
   - Per-IP rate limiting and request-size caps guard against abuse.
-  - Text sent to EXTERNAL providers (Groq, Sarvam, Google) is scrubbed for
+  - Text sent to EXTERNAL providers (Groq, Google) is scrubbed for
     mobile/Aadhaar numbers first (app/services/pii.py).
 
 COLD START: the port opens before the models are loaded, so the service tracks
@@ -73,7 +73,7 @@ _OPEN_PATHS = frozenset({"/health", "/health/live", "/health/ready"})
 # a restart inside the Node proxy's abort window.
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    # TTS is cloud-only now (Sarvam -> Google): nothing to preload at boot.
+    # TTS is local now (MMS VITS) — prewarmed below alongside the rest.
     from app.services import translation_service
 
     rag_service.prewarm()
@@ -84,6 +84,7 @@ async def lifespan(_app: FastAPI):
     # faster-whisper: the STT path, and a cold load mid-demo would add ~8s on
     # top of the ~6s CPU transcription.
     stt_service.prewarm()
+    tts_service.prewarm()
     logger.info("Boot warm-up started; poll /health/ready for real readiness")
     yield
     logger.info("Shutting down")

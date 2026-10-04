@@ -53,7 +53,7 @@ only answers questions, so there is no second copy of the rules to drift.
 ```mermaid
 flowchart TD
     Q["Tamil question"] --> PII["PII scrub<br/>(mobile / Aadhaar patterns)"]
-    PII --> TR["Translate to English<br/>Sarvam/Google → IndicTrans2 → NLLB"]
+    PII --> TR["Translate to English<br/>Google → IndicTrans2 → NLLB"]
     TR --> EMB["Embed (multilingual MiniLM)"]
     EMB --> FAISS["FAISS top-k cosine search"]
     FAISS --> POOL["pool_k = 12–24 candidates"]
@@ -170,7 +170,7 @@ applied as a filter on every read, so a record outside the scope is simply not
 found (404, not 403 — returning 403 would confirm it exists). Write paths
 re-validate jurisdiction rather than trusting a client-supplied ID.
 
-Second: **PII leaving the system.** Worker text goes to Groq, Sarvam and Google.
+Second: **PII leaving the system.** Worker text goes to Groq and Google.
 Phone and Aadhaar patterns are scrubbed *before* retrieval, translation and the
 LLM — the entire pipeline is downstream of the scrub, in both the Python and
 Node layers.

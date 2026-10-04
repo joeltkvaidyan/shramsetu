@@ -25,7 +25,7 @@ flowchart LR
     E["Express API :8000<br/>JWT auth, rate limit,<br/>scope check, audit"]
     M[("MongoDB :27017<br/>workers, grievances,<br/>documents, wages")]
     A["FastAPI AI :8100<br/>PII strip, translate,<br/>retrieve, answer"]
-    X["Groq / Sarvam / Google<br/>LLM, MT, STT, TTS"]
+    X["Groq / Google + local models<br/>LLM, MT, STT, TTS"]
 
     B -- "JWT over /api" --> E
     E -- "Mongoose" --> M
@@ -126,7 +126,7 @@ Browser ──JWT──► Express (auth → rate limit → route)
                    │                     │
                    │                     └──► MongoDB (Mongoose models)
                    └──X-Internal-Key──► FastAPI (PII strip → translate →
-                                          FAISS → gate → Groq) ──► Groq/Sarvam/Google
+                                          FAISS → gate → Groq) ──► Groq/Google
 ```
 
 ## Cold start
@@ -163,7 +163,7 @@ hanging until the Node proxy aborts at 120s. Past that bound it returns a fast
 | `server/src/utils/` | `scope.js` (jurisdiction), `docKeys.js` (key wrapping), `fileValidation.js`, `audit.js` |
 | `server/src/seed/` | create-only bootstrap admin + demo officials/workers (`SEED_DEMO_DATA`) |
 | `server/tests/` | vitest: 50 tests — 40 security/scope + 10 wage/SOS parity (mongodb-memory-server) |
-| `ai-service/app/services/` | rag_service, translation_service, stt_service (faster-whisper), tts_service (Sarvam/Google), pii |
+| `ai-service/app/services/` | rag_service, translation_service, stt_service (faster-whisper), tts_service (local Meta MMS VITS), pii |
 | `ai-service/rag/` | `sample_docs/` (curated corpus with provenance headers), `loader.py`, `ingest.py`, FAISS index (generated, gitignored) |
 | `ai-service/tests/` | pytest (42 tests): corpus integrity, loader, RAG contract, PII, prompt injection, translation cache |
 | `ai-service/eval/` | 70-question multilingual eval suite + `run_eval.py` → `RESULTS.md`; reasoning and limits in `ANALYSIS.md` |
@@ -175,7 +175,7 @@ hanging until the Node proxy aborts at 120s. Past that bound it returns a fast
 | File | Key variables |
 |---|---|
 | `server/.env` | `MONGODB_URI`, `JWT_SECRET_KEY`, `DOC_MASTER_KEY`, `AI_INTERNAL_KEY`, `CORS_ORIGINS`, `OTP_ECHO_ENABLED`, `SEED_DEMO_DATA`, `BOOTSTRAP_ADMIN_PASSWORD`, rate-limit knobs |
-| `ai-service/.env` | `AI_INTERNAL_KEY`, `GROQ_API_KEY`/`GROQ_MODEL`, `SARVAM_API_KEY`, `GOOGLE_API_KEY`, `TTS_PROVIDER`, `RAG_MIN_SIMILARITY`, `RAG_TOP_K`, `AI_RATE_LIMIT_PER_MIN` |
+| `ai-service/.env` | `AI_INTERNAL_KEY`, `GROQ_API_KEY`/`GROQ_MODEL`, `GOOGLE_API_KEY`, `RAG_MIN_SIMILARITY`, `RAG_TOP_K`, `AI_RATE_LIMIT_PER_MIN` |
 | `frontend/.env` | none required in dev (Vite proxy) |
 
 `.env.example` files document each variable; real `.env` files are

@@ -94,7 +94,7 @@
     "selectOccupation": "Select your occupation",
     "aadhaarHint": "Stored securely and used only for welfare scheme eligibility",
     "nativeStateHint": "Your home/native state for welfare scheme eligibility",
-    "consentNotice": "📋 By completing this registration, you agree that your profile is used only for welfare scheme eligibility and emergency communication. To answer in your language, your chat questions and voice recordings may be processed by third-party AI services (Groq, Sarvam, Google).",
+    "consentNotice": "📋 By completing this registration, you agree that your profile is used only for welfare scheme eligibility and emergency communication. To answer in your language, your chat questions and voice recordings may be processed by third-party AI services (Groq, Google).",
     "otpSentNotice": "Verification code sent to your mobile. Enter it below.",
     "verifyButton": "Verify & Login",
     "consentCheckbox": "I have read and agree to this privacy notice.",

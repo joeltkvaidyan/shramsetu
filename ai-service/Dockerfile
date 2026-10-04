@@ -4,9 +4,9 @@
 # Run:     docker run -d --name shramsetu-ai-service --env-file .env -p 8100:8100 shramsetu-ai-service
 #
 # Runtime requirements (all passed through from the host):
-#   GROQ_API_KEY, GEMINI_API_KEY, SARVAM_API_KEY (optional), GOOGLE_API_KEY
-#   (optional), WHISPER_MODEL_SIZE (default large-v3-turbo), HF_TOKEN
-#   (for the licensed IndicTrans2 model download).
+#   GROQ_API_KEY, GEMINI_API_KEY, GOOGLE_API_KEY (optional translate),
+#   HF_TOKEN (for the licensed IndicTrans2 model download).
+# TTS and STT are fully local — no TTS/STT keys.
 
 FROM python:3.12-slim AS builder
 

@@ -6,7 +6,8 @@
 # python-dotenv, httpx, gTTS, python-magic, aiofiles, websockets, email-validator,
 # boto3, coqui-tts, torchaudio, pydub, espeakng-loader, phonemizer, the bare
 # `langchain` meta-package and a direct `groq` pin (langchain-groq pulls it in).
-# Auth now lives entirely in the Node server; TTS is Sarvam/Google over REST.
+# Auth now lives entirely in the Node server; TTS is local (Meta MMS VITS via
+# transformers) and translation optionally calls Google Translate over REST.
 
 fastapi==0.115.0
 uvicorn[standard]==0.30.6
@@ -16,7 +17,7 @@ pydantic==2.12.5
 pydantic-settings==2.10.1
 # FastAPI needs multipart parsing for the /transcribe file upload.
 python-multipart==0.0.9
-# REST client for Google/Sarvam translation and TTS providers.
+# REST client for the optional Google Translate query-translation engine.
 requests==2.34.2
 
 # --- RAG stack ---

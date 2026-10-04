@@ -36,7 +36,7 @@ Supported languages: **English, Hindi, Bengali, Telugu, Tamil, Malayalam**.
 │                  │          │    similarity gate +        │
 │  users·grievances│          │    citations + disclaimer   │
 │  documents·notifs│          │  · STT: faster-whisper small│
-│  audit·chat      │          │  · TTS: Sarvam / Google     │
+│  audit·chat      │          │  · TTS: local MMS          │
 │  wages·sos       │          │                             │
 └──────────────────┘          │  · PII stripped before any  │
                               │    external provider call   │
@@ -48,8 +48,8 @@ Supported languages: **English, Hindi, Bengali, Telugu, Tamil, Malayalam**.
   government scheme documents (with per-document provenance: source URL,
   verification date, current/superseded status), Groq-grounded answers with
   citations and an "informational only, not legal advice" disclaimer,
-  faster-whisper speech-to-text, Sarvam/Google text-to-speech, and
-  Indic→English query translation (Google Translate / Sarvam cloud, with
+  faster-whisper speech-to-text, local MMS text-to-speech, and
+  Indic→English query translation (Google Translate if configured, with
   local IndicTrans2/NLLB fallbacks).
 - **MongoDB** — Mongoose models; dev uses an embedded instance (zero
   install), production points `MONGODB_URI` at a real server.
@@ -178,7 +178,7 @@ wait for readiness before pointing the browser at the public origin.
 ```bash
 # 1. Fill the ROOT .env — docker compose interpolates every bare env name
 #    below from it (gitignored; keys documented in .env.example):
-#      JWT_SECRET_KEY, GROQ_API_KEY, GROQ_MODEL, SARVAM_API_KEY, HF_TOKEN,
+#      JWT_SECRET_KEY, GROQ_API_KEY, GROQ_MODEL, HF_TOKEN,
 #      AI_INTERNAL_KEY, BOOTSTRAP_ADMIN_PASSWORD, DOC_MASTER_KEY
 #    GEMINI_API_KEY / GOOGLE_API_KEY enable the optional fallbacks.
 #    Containers do NOT read server/.env or ai-service/.env — compose's
@@ -202,7 +202,7 @@ wget -qO- http://localhost/                     # frontend: index.html (SPA)
 The compose file maps the public origin:
 - `mongo:27017` (data in named volume `mongo_data`)
 - `ai-service:8100` (FastAPI: RAG + Groq/Gemini LLM, local faster-whisper STT,
-  Sarvam/Google TTS)
+  local MMS TTS)
 - `server:8000` (Express: auth, grievances, documents, chat, notifications; proxies
   `/api` to `ai-service`)
 - `frontend:80` (nginx: static SPA + proxies `/api` to `server`)
@@ -213,7 +213,7 @@ Concretely, the four live providers that the platform routes traffic through:
   the sandbox never calls a provider directly.
 - **STT:** local `faster-whisper` (CPU, no key, no cloud call). Language is
   auto-detected, then re-decoded with the Indic model for non-English.
-- **TTS:** Sarvam Bulbul (primary) → Google Cloud TTS (fallback). Returns
+- **TTS:** local Meta MMS VITS (in-process, no API key, no cloud call). Returns
   `audio/wav`.
 - **Query translation:** English-first retrieval (IndicTrans2 → NLLB fallback).
 

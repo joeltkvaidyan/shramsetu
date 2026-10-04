@@ -13,7 +13,7 @@ const LANGS = ["en", "hi", "bn", "te", "ta", "ml"];
 
 /**
  * Strip obvious PII before text reaches ANY external provider (Groq LLM,
- * Sarvam MT/TTS, Google). Removes 10-digit Indian mobile numbers and
+ * Google Translate). Removes 10-digit Indian mobile numbers and
  * 12-digit Aadhaar-like sequences, replacing them with a placeholder.
  * The original text stays in the worker's own chat history (local DB).
  */

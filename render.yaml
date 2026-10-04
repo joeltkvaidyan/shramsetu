@@ -8,7 +8,7 @@
 #
 # Secrets are declared sync: false and are NOT in this file:
 #   JWT_SECRET_KEY, BOOTSTRAP_ADMIN_PASSWORD, DOC_MASTER_KEY, AI_INTERNAL_KEY,
-#   GROQ_API_KEY, SARVAM_API_KEY, HF_TOKEN
+#   GROQ_API_KEY, HF_TOKEN
 # The dashboard prompts for them during blueprint creation; when creating via
 # the API they land empty until set (see DEPLOYMENT.md).
 #
@@ -86,7 +86,7 @@ services:
       - key: AI_INTERNAL_KEY
         sync: false
 
-  # ── 3. AI service (RAG + Groq LLM, local STT, Sarvam TTS) ───────────────
+  # ── 3. AI service (RAG + Groq LLM, fully local STT/TTS) ───────────────
   - type: web
     runtime: docker
     name: shramsetu-ai
@@ -125,8 +125,6 @@ services:
         value: ""
       - key: GROQ_API_KEY
         sync: false
-      - key: SARVAM_API_KEY
-        sync: false
       # Gated Hugging Face weights (IndicTrans2).
       - key: HF_TOKEN
         sync: false
@@ -134,7 +132,8 @@ services:
       - key: AI_INTERNAL_KEY
         sync: false
       # GEMINI_API_KEY / GOOGLE_API_KEY are optional fallbacks — add them in
-      # the dashboard to light up Groq->Gemini and Sarvam->Google chains.
+      # the dashboard to light up the Groq->Gemini LLM chain and the Google
+      # Translate query-translation engine. TTS/STT are fully local.
 
   # ── 4. MongoDB — private, only shramsetu-api can reach it ───────────────
   - type: pserv

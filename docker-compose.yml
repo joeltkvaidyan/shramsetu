@@ -7,7 +7,7 @@
 # healthy):
 #   - mongo      :27017   (MongoDB, data persisted in a named volume)
 #   - ai-service :8100    (FastAPI: RAG + Groq/Gemini, local faster-whisper STT,
-#                          Sarvam/Google TTS)
+#                          local MMS text-to-speech)
 #   - server     :8000    (Express + Mongoose: auth, grievances, documents,
 #                          chat, notifications; proxies /api to ai-service)
 #   - frontend   :80      (nginx: SPA + proxies /api to server)
@@ -68,9 +68,6 @@ services:
       - DEBUG=false
       - GROQ_API_KEY
       - GEMINI_API_KEY
-      - SARVAM_API_KEY
-      - SARVAM_TTS_MODEL
-      - SARVAM_TTS_SPEAKER
       - GROQ_MODEL
       - AI_INTERNAL_KEY
       # Persist HF/whisper/IndicTrans2 downloads in the ai_models volume so a

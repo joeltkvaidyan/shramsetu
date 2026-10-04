@@ -130,7 +130,7 @@ flowchart TD
      retrieval is gated at similarity 0.45, so off-topic questions retrieve
      nothing and the assistant says so.
 
-   Then toggle 🔊 (Sarvam/Google TTS) and 🎤 (local Whisper), switch the UI to
+   Then toggle 🔊 (local MMS TTS) and 🎤 (local Whisper), switch the UI to
    Hindi and ask in Hindi — retrieval still grounds the answer because the
    question is translated to English *before* retrieval.
 

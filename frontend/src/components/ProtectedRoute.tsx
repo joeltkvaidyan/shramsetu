@@ -8,11 +8,10 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
   const { worker, loading, bootError, refreshMe } = useAuth();
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <p className="text-gray-400">{t("common.loading")}</p>
-      </div>
-    );
+    // Auth is still resolving (one quick /me round trip when a token exists).
+    // Render nothing instead of the old full-screen "Loading…" display — the
+    // guard is unchanged, only the waiting screen is gone.
+    return null;
   }
 
   if (bootError && !worker) {

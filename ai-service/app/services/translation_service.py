@@ -6,12 +6,9 @@ multilingual embedding model copes partially, but recall is markedly better
 when retrieval runs against an English rendering of the question.
 
 Engines (tried in this order):
-  0a. Google Cloud Translation v2 — cloud REST call, one round trip
-      (~0.3s). Activates when GOOGLE_TRANSLATE_API_KEY (or GOOGLE_API_KEY)
-      is set; free tier 500k chars/month. Needs billing enabled.
-  0b. Sarvam Machine Translation (sarvam-translate:v1) — cloud REST call
-      (~0.5-0.9s), Indian-language-native, works with the SAME
-      SARVAM_API_KEY used for TTS. Active whenever that key is present.
+  0. Google Cloud Translation v2 — cloud REST call, one round trip
+     (~0.3s). Activates when GOOGLE_TRANSLATE_API_KEY (or GOOGLE_API_KEY)
+     is set; free tier 500k chars/month. Needs billing enabled.
   1. IndicTrans2 (ai4bharat/indictrans2-indic-en-1B) — best LOCAL quality for
      Indic languages. The official AI4Bharat repos are LICENSE-GATED: one-time
      acceptance on huggingface.co + `huggingface-cli login`. Preprocessing
@@ -70,54 +67,6 @@ def _google_api_key() -> str:
         or settings.GOOGLE_API_KEY
         or ""
     ).strip()
-
-
-# ── Engine 0b: Sarvam Machine Translation (same key as TTS) ─────────────
-
-
-# Platform language -> Sarvam BCP-47 locale (hi-IN etc.).
-_SARVAM_MT_LANG = {
-    "hi": "hi-IN",
-    "bn": "bn-IN",
-    "te": "te-IN",
-    "ta": "ta-IN",
-    "ml": "ml-IN",
-}
-
-
-def _translate_sarvam(texts: list[str], src_iso: str) -> list[str]:
-    """Sarvam Machine Translation (sarvam-translate:v1) — reuses the TTS key,
-    one POST per call (~0.5-0.9s round trip). Handles Indic <-> English
-    natively. Raises RuntimeError so the caller can fall through to the
-    local engines."""
-    import requests
-
-    if not settings.SARVAM_API_KEY:
-        raise RuntimeError("engine=sarvam but SARVAM_API_KEY is not set")
-    src_locale = _SARVAM_MT_LANG.get(src_iso)
-    if src_locale is None:
-        raise RuntimeError(f"Sarvam MT has no locale for language={src_iso!r}")
-
-    translated: list[str] = []
-    for text in texts:
-        response = requests.post(
-            "https://api.sarvam.ai/translate",
-            headers={"api-subscription-key": settings.SARVAM_API_KEY},
-            json={
-                "input": text,
-                "source_language_code": src_locale,
-                "target_language_code": "en-IN",
-                "model": "sarvam-translate:v1",
-            },
-            timeout=settings.TRANSLATE_HTTP_TIMEOUT,
-        )
-        response.raise_for_status()
-        body = response.json()
-        out = (body.get("translated_text") or "").strip()
-        if not out:
-            raise RuntimeError("Sarvam MT returned empty translation")
-        translated.append(out)
-    return translated
 
 
 # ── Engine 0: Google Cloud Translation v2 (fastest, key-gated) ──────────
@@ -261,8 +210,6 @@ def _ensure_engine(name: str) -> bool:
             return False
         if name == "google":
             ok = bool(_google_api_key())
-        elif name == "sarvam":
-            ok = bool(settings.SARVAM_API_KEY)
         elif name == "indictrans2":
             ok = _try_load_indictrans2()
         else:
@@ -272,18 +219,18 @@ def _ensure_engine(name: str) -> bool:
 
 
 def _resolve_engine() -> str | None:
-    """Pick the engine per TRANSLATION_ENGINE: auto | google | sarvam | indictrans2 | nllb."""
+    """Pick the engine per TRANSLATION_ENGINE: auto | google | indictrans2 | nllb."""
     chain = _resolve_chain()
     return chain[0] if chain else None
 
 
 def _resolve_chain() -> list[str]:
     """Ordered engine list per TRANSLATION_ENGINE:
-    auto | google | sarvam | indictrans2 | nllb."""
+    auto | google | indictrans2 | nllb."""
     pref = (settings.TRANSLATION_ENGINE or "auto").strip().lower()
     if not settings.TRANSLATION_ENABLED or not settings.TRANSLATION_MODEL:
         return []
-    if pref in {"google", "sarvam", "indictrans2", "nllb"}:
+    if pref in {"google", "indictrans2", "nllb"}:
         return [pref] if _ensure_engine(pref) else []
     # auto: fastest cloud first, then best local quality, then the ungated
     # fallback. Cloud engines are checked by key presence (cheap). Local
@@ -294,8 +241,6 @@ def _resolve_chain() -> list[str]:
     chain: list[str] = []
     if _ensure_engine("google"):
         chain.append("google")
-    if _ensure_engine("sarvam"):
-        chain.append("sarvam")
     chain.append("indictrans2")
     if settings.TRANSLATION_FALLBACK_MODEL:
         chain.append("nllb")
@@ -407,11 +352,11 @@ def prewarm() -> None:
     def _load():
         global _prewarm_done
         try:
-            # A cloud MT engine (Sarvam/Google) answers in under a second and
-            # needs no RAM — when one is active, keep IndicTrans2 (~1 GB)
-            # UNLOADED so the box keeps headroom for STT/TTS models. It loads
-            # on demand if the cloud call ever fails.
-            if _ensure_engine("sarvam") or _ensure_engine("google"):
+            # A cloud MT engine (Google) answers in under a second and needs
+            # no RAM — when one is active, keep IndicTrans2 (~1 GB) UNLOADED
+            # so the box keeps headroom for STT/TTS models. It loads on
+            # demand if the cloud call ever fails.
+            if _ensure_engine("google"):
                 logger.info("Cloud MT active — skipping IndicTrans2 prewarm (loads on fallback)")
                 warmup.REGISTRY.mark(
                     "translation", warmup.SKIPPED, detail="cloud MT engine active"
@@ -518,8 +463,6 @@ def translate_to_english(question: str, language: str | None = None) -> tuple[st
                 continue
             if engine == "google":
                 result = _translate_google([question.strip()], lang)
-            elif engine == "sarvam":
-                result = _translate_sarvam([question.strip()], lang)
             elif engine == "indictrans2":
                 result = _translate_indictrans2([question.strip()], src, tgt)
             else:
