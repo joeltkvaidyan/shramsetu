@@ -105,7 +105,8 @@ class Settings(BaseSettings):
     FAISS_INDEX_DIR: str = "./rag/index"
     RAG_SOURCE_DOCS_DIR: str = "./rag/sample_docs"
     RAG_TOP_K: int = 6
-    RAG_MIN_SIMILARITY: float = 0.45  # eval-justified: off-topic/injection questions score <=0.42, genuine hits >=0.47 (eval/RESULTS.md)
+    RAG_MIN_SIMILARITY: float = 0.45  # off-topic/injection questions score <=0.42, genuine hits >=0.47 (eval/RESULTS.md)
+    RAG_GROUNDING_THRESHOLD: float = 0.30  # scoring.py: content-word overlap between answer and top context
 
     # --- Cold start ---
     # How long /ask waits for the boot warm-up to finish before answering with a
