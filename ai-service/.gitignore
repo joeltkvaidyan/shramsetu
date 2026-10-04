@@ -1,4 +1,11 @@
 
+# Virtual environment + Python cache (not needed in the container, but keep
+# the repo clean for local venvs).
+venv/
+__pycache__/
+.pytest_cache/
+node_modules/
+
 # Local model weights (NLLB-200 + IndicTrans2) - multi-GB, never commit
 models/nllb-200-distilled-600M/
 models/indictrans2-indic-en-1B/

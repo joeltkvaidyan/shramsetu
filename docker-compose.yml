@@ -1,19 +1,24 @@
-# ShramSetu — MongoDB via Docker (optional development setup).
+# ShramSetu — fully containerised production deployment.
 #
-# Usage (after installing Docker Desktop):
-#   docker compose up -d mongo
-# then in server/.env set:
-#   MONGODB_URI=mongodb://127.0.0.1:27017/shramsetu
-# and restart the Node server. The demo seeder is idempotent — it fills
-# only what's missing, so data persists across restarts.
+# Build & run from the repo root:
+#   docker compose up -d
 #
-# Development needs only the database; the Node server, Python AI service
-# and frontend run natively (see README "Run it"). Add them here later if
-# you want a fully containerised stack.
+# Services (all with healthchecks; the router only answers once all four are
+# healthy):
+#   - mongo      :27017   (MongoDB, data persisted in a named volume)
+#   - ai-service :8100    (FastAPI: RAG + Groq/Gemini, local faster-whisper STT,
+#                          Sarvam/Google TTS)
+#   - server     :8000    (Express + Mongoose: auth, grievances, documents,
+#                          chat, notifications; proxies /api to ai-service)
+#   - frontend   :80      (nginx: SPA + proxies /api to server)
+#
+# Public origin: configure Certs and domain in nginx conf, then expose 80/443.
+# Env vars with bare names (GROQ_API_KEY, JWT_SECRET_KEY, etc.) are injected
+# from the host environment — see README "Deployment" for the full list.
 
 services:
   mongo:
-    image: mongo:7
+    image: mongo:8
     container_name: shramsetu-mongo
     restart: unless-stopped
     ports:
@@ -24,7 +29,104 @@ services:
       test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: shramsetu-ai-service
+    restart: unless-stopped
+    ports:
+      - "8100:8100"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    volumes:
+      - ai_index:/app/rag/index
+      - ai_models:/app/models
+    healthcheck:
+      test: ["CMD", "sh", "-c", "curl -sf http://localhost:8100/health/ready | grep -q '\"ready\":true'"]
+      interval: 20s
+      timeout: 10s
+      retries: 15
+      start_period: 120s
+    environment:
+      - ENV=production
+      - DEBUG=false
+      - GROQ_API_KEY
+      - GEMINI_API_KEY
+      - SARVAM_API_KEY
+      - SARVAM_TTS_MODEL
+      - SARVAM_TTS_SPEAKER
+      - GOOGLE_API_KEY
+      - WHISPER_MODEL_SIZE=large-v3-turbo
+      - WHISPER_INDIC_MODEL=large-v3-turbo
+      - HF_TOKEN
+    deploy:
+      resources:
+        limits:
+          memory: 16g
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: shramsetu-server
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    depends_on:
+      mongo:
+        condition: service_healthy
+      ai-service:
+        condition: service_healthy
+    environment:
+      - ENV=production
+      - DEBUG=false
+      - MONGODB_URI=mongodb://root:shramsetu123@mongo:27017/shramsetu?authSource=admin
+      - JWT_SECRET_KEY
+      - AI_SERVICE_URL=http://ai-service:8100
+      - AI_INTERNAL_KEY
+      - BOOTSTRAP_ADMIN_PASSWORD
+      - SEED_DEMO_DATA=false
+      - DOC_MASTER_KEY
+      - CORS_ORIGINS=https://shramsetu.example.com,https://www.shramsetu.example.com
+    healthcheck:
+      test: ["CMD", "node", "scripts/healthcheck.js"]
+      interval: 20s
+      timeout: 10s
+      retries: 15
+      start_period: 120s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: shramsetu-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      server:
+        condition: service_healthy
+    environment:
+      - VITE_API_BASE_URL=/api
+    volumes:
+      - frontend_uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/"]
+      interval: 20s
+      timeout: 5s
+      retries: 10
 
 volumes:
   mongo_data:
+  ai_index:
+  ai_models:
+  frontend_uploads:

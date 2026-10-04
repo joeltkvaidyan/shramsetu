@@ -167,3 +167,60 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md),
 [DEMO.md](DEMO.md) (timed demo script, credentials, troubleshooting) and
 [VIVA_QA.md](VIVA_QA.md) (likely examiner questions with defensible answers).
 [WORKFLOW.md](WORKFLOW.md) is the code walkthrough for the viva.
+
+## Deploy (production)
+
+Ship the four-service stack with `docker compose`, which assembles Mongo, the AI
+service, the Node API server and the nginx frontend into one Docker Compose file.
+Host and CI both do this: run `docker compose up -d` from the repo root, then
+wait for readiness before pointing the browser at the public origin.
+
+```bash
+# 1. Point the four env files at real keys (never commit them).
+cp server/.env.example server/.env
+cp ai-service/.env.example ai-service/.env
+# AI_INTERNAL_KEY must be identical in both files (used for the internal-key
+# guard on /ask, /speak, /transcribe). Set: GROQ_API_KEY, GEMINI_API_KEY
+# (Gemini 2.0 flash), SARVAM_API_KEY, GOOGLE_API_KEY, HF_TOKEN.
+
+# 2. Build & start the stack detached.
+docker compose up -d
+
+# 3. Confirm every service is healthy before serving traffic.
+docker compose ps          # every service "healthy" (not "starting" or "unhealthy")
+curl -s http://localhost:8100/health/ready      # ai-service: true when warm
+curl -s http://localhost:8000/health            # server: 200 {status:"ok"}
+wget -qO- http://localhost/                     # frontend: index.html (SPA)
+
+# 4. Load a demo worker, verify the proxy chain is live.
+#    From a browser (or shramsetu/docs/SECURITY.md) log in as a worker and
+#    hit /api/v1/chat or /api/v1/grievances. The nginx frontend -> server on
+#    :80 -> :8000 -> ai-service on :8100 chain is exercised on every request.
+```
+
+The compose file maps the public origin:
+- `mongo:27017` (data in named volume `mongo_data`)
+- `ai-service:8100` (FastAPI: RAG + Groq/Gemini LLM, local faster-whisper STT,
+  Sarvam/Google TTS)
+- `server:8000` (Express: auth, grievances, documents, chat, notifications; proxies
+  `/api` to `ai-service`)
+- `frontend:80` (nginx: static SPA + proxies `/api` to `server`)
+
+Concretely, the four live providers that the platform routes traffic through:
+- **LLM:** Groq (primary) → Google Gemini (fallback) → deterministic local JSON
+  fallback. The AI service only accepts an internal key from the Node server, so
+  the sandbox never calls a provider directly.
+- **STT:** local `faster-whisper` (CPU, no key, no cloud call). Language is
+  auto-detected, then re-decoded with the Indic model for non-English.
+- **TTS:** Sarvam Bulbul (primary) → Google Cloud TTS (fallback). Returns
+  `audio/wav`.
+- **Query translation:** English-first retrieval (IndicTrans2 → NLLB fallback).
+
+**Vagrant-equivalent one-liner (WSL2/Windows dev host):** nothing is in Vagrant;
+the stack is `docker compose` only. The `start-all.ps1` launcher is the
+development equivalent (all four services on 8000/8100/5199) but it is not what
+you deploy.
+
+**Pull the live stack onto another host:** `docker compose pull && docker compose up -d`
+(preserves `mongo_data` / `ai_index` / `ai_models` / `frontend_uploads` named
+volumes, so the FAISS index and model weights survive rebuilds).

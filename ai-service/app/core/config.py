@@ -29,6 +29,11 @@ class Settings(BaseSettings):
     # --- Groq (LLM provider for RAG chatbot) ---
     GROQ_API_KEY: str = ""
     GROQ_MODEL: str = "llama-3.3-70b-versatile"
+    # Gemini (Google) — automatic fallback when Groq is exhausted or rate-limited.
+    # Get a free key at aistudio.google.com. One per-project key covers only
+    # Gemini 2.0 flash; the code below switches the right model per provider.
+    GEMINI_API_KEY: str = ""
+    GEMINI_MODEL: str = "gemini-2.0-flash"
 
     # --- Sarvam AI (Indian-language-native TTS + MT, free tier) ---
     # Get a key at dashboard.sarvam.ai. Used by TTS_PROVIDER=sarvam

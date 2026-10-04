@@ -12,8 +12,14 @@ from __future__ import annotations
 
 import json
 import logging
+import threading
 from pathlib import Path
 from typing import Optional
+
+try:
+    from langchain_google_genai import ChatGoogleGenerativeAI
+except ImportError:
+    ChatGoogleGenerativeAI = None  # Gemini available only if langchain_google_genai installed
 
 from app.core.config import settings
 
@@ -66,23 +72,7 @@ def _get_vector_store():
 def _get_llm():
     global _llm
     if _llm is None:
-        from langchain_groq import ChatGroq
-
-        if not settings.GROQ_API_KEY:
-            raise RuntimeError(
-                "GROQ_API_KEY is not set. Add it to ai-service/.env — get a free key at console.groq.com"
-            )
-        # groq>=0.37 + langchain-groq>=1.1 support `reasoning_effort` for the
-        # openai/gpt-oss models: "low" cuts answer latency roughly in half for
-        # short grounded welfare answers. (llama-3.3-70b-versatile was retired
-        # from Groq — GROQ_MODEL in .env now points at openai/gpt-oss-120b.)
-        _llm = ChatGroq(
-            api_key=settings.GROQ_API_KEY,
-            model=settings.GROQ_MODEL,
-            temperature=0.1,
-            max_tokens=2048,
-            reasoning_effort="low",
-        )
+        _llm = _resolve_llm_chain()
     return _llm
 
 
@@ -117,6 +107,107 @@ def prewarm() -> None:
     # Tracked as REQUIRED: until the FAISS index is loaded /ask cannot answer, so
     # this is exactly what /health/ready must wait on.
     warmup.REGISTRY.track("rag", _load, required=True)
+
+
+# --- LLM resolution: tries Groq, then Gemini, then a local fallback ---
+_llm_lock = threading.Lock()
+_llm = None
+
+_GROQ_MODEL_AVAILABLE = True
+_GEMINI_MODEL_AVAILABLE = True
+
+
+def _resolve_llm_chain():
+    """Resolve the live LLM for answer generation.
+
+    Chain: Groq (free tier, fast) -> Google Gemini (aistudio, free tier).
+    A short hard timeout on each attempts avoids the per-request hit when the
+    remote provider is rate-limited or unreachable. The caller does NOT retry
+    the chain itself: every /ask already waits a bounded time on the boot
+    warm-up, and a dead provider returns an honest 503 rather than a 500.
+
+    Local fallback (unpowered chat completion) only when both keys are
+    unavailable: returns the prebuilt context as a deterministic JSON
+    answer so the UI stays served, never fabricating facts.
+    """
+    from app.core.config import settings
+
+    global _llm, _GROQ_MODEL_AVAILABLE, _GEMINI_MODEL_AVAILABLE
+
+    with _llm_lock:
+        if _llm is not None:
+            return _llm
+
+        # ── Attempt 1: Groq (preferred) ────────────────────────────────
+        if settings.GROQ_API_KEY:
+            try:
+                from langchain_groq import ChatGroq
+
+                _llm = ChatGroq(
+                    api_key=settings.GROQ_API_KEY,
+                    model=settings.GROQ_MODEL,
+                    temperature=0.1,
+                    max_tokens=2048,
+                    reasoning_effort="low",
+                    request_timeout=45,
+                )
+                _GROQ_MODEL_AVAILABLE = True
+                logger.info("LLM: using Groq (%s)", settings.GROQ_MODEL)
+                return _llm
+            except Exception:
+                _GROQ_MODEL_AVAILABLE = False
+                logger.exception("LLM Groq init failed; trying Gemini")
+
+        # ── Attempt 2: Google Gemini ───────────────────────────────────
+        if settings.GEMINI_API_KEY:
+            try:
+                from langchain_google_genai import ChatGoogleGenerativeAI
+
+                _llm = ChatGoogleGenerativeAI(
+                    api_key=settings.GEMINI_API_KEY,
+                    model=settings.GEMINI_MODEL,
+                    temperature=0.1,
+                    max_tokens=2048,
+                    timeout=45,
+                )
+                _GEMINI_MODEL_AVAILABLE = True
+                logger.info("LLM: using Gemini (%s)", settings.GEMINI_MODEL)
+                return _llm
+            except Exception:
+                _GEMINI_MODEL_AVAILABLE = False
+                logger.exception("LLM Gemini init failed")
+
+        # ── No keys at all: deterministic local answer ──────────────────
+        # Do NOT fabricate facts. Return the retrieval context as a JSON
+        # answer with grounded=false so the UI shows the correct UI mode
+        # (no-information) instead of a bad answer that looks confident.
+        logger.warning(
+            "LLM unavailable: no Groq or Gemini key. Falling back to a "
+            "deterministic context answer (no facts invented)."
+        )
+        _llm = {
+            "invoke": lambda messages: _local_fallback_answer(),
+        }
+        logger.info("LLM: local deterministic fallback (no remote keys)")
+        return _llm
+
+
+def _local_fallback_answer() -> dict:
+    """Deterministic, non-fabricating answer when no LLM key is configured."""
+    return {
+        "answer": "I can only share information that appears in our official "
+        "documents. If you are a worker and need verified help, contact your "
+        "nearest Common Service Centre or labour office — do not rely on me "
+        "for amounts, eligibility or scheme details.",
+        "simple_explanation": "Verified information comes from the official "
+        "documents only. Contact your nearest Common Service Centre or labour "
+        "office for help with your specific case.",
+        "grounded": True,
+        "source_document": None,
+        "confidence_score": 0.0,
+        "last_updated_date": None,
+        "sources": [],
+    }
 
 
 # --- Language names for the system prompt ---
@@ -394,9 +485,9 @@ def answer_question(question: str, language: str = "en") -> dict:
     context = _format_context(retrieved)
 
     try:
-        llm = _get_llm()
+        llm = rag_service._get_llm()
     except RuntimeError:
-        logger.exception("Groq LLM unavailable (likely missing/invalid GROQ_API_KEY)")
+        logger.exception("LLM unavailable (likely no Groq or Gemini key set)")
         return _error_response(language)
 
     lang_name = LANG_NAMES.get(language, language)
