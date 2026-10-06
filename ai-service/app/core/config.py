@@ -54,6 +54,9 @@ class Settings(BaseSettings):
     # GOOGLE_API_KEY if unset; when neither is set the local IndicTrans2 /
     # NLLB engines are used. Free tier: 500k chars/month.
     GOOGLE_TRANSLATE_API_KEY: str = ""
+    # Shared Google key used as the fallback when the dedicated Translate key
+    # is unset (translation_service._google_api_key).
+    GOOGLE_API_KEY: str = ""
 
     # --- Voice: speech-to-text ---
     # STT is fully LOCAL: faster-whisper (CTranslate2 port of OpenAI Whisper)

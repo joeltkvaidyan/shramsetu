@@ -135,22 +135,3 @@ export interface WageSummary {
   total_unpaid: number;
   period: string;
 }
-
-/** SOS alert as delivered to the officials' dashboard (dashboard-only). */
-export interface SosAlert {
-  id: string;
-  worker_id: string;
-  worker_name: string | null;
-  worker_mobile: string | null;
-  status: "open" | "acknowledged";
-  location_text: string | null;
-  note: string | null;
-  owner_state: string | null;
-  owner_district: string | null;
-  emergency_contact_name: string | null;
-  emergency_contact_relation: string | null;
-  emergency_contact_number: string | null;
-  acknowledgements: { official_name?: string; acknowledged_at?: string }[];
-  created_at: string;
-  delivery?: string;
-}

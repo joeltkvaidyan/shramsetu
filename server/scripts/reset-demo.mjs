@@ -4,7 +4,7 @@
  * WHY THIS EXISTS
  * ---------------
  * Every demo run mutates the database: a grievance is filed, a wage entry is
- * logged, an SOS is raised and acknowledged, a notification is sent. Run the
+ * logged, a notification is sent. Run the
  * demo twice and the second run opens onto last week's data — the grievance
  * count is wrong, the wage diary already has rows, and the "only 2 construction
  * workers" targeting demo no longer demonstrates anything because the audience
@@ -20,8 +20,8 @@
  *
  * WHAT IT DOES AND DOES NOT DELETE
  * --------------------------------
- * Deletes: workers and everything they own (grievances, wage entries, SOS
- * alerts, chat history, notifications, wallet document metadata).
+ * Deletes: workers and everything they own (grievances, wage entries,
+ * chat history, notifications, wallet document metadata).
  * Keeps:    government officials and the bootstrap admin. Logins must survive a
  *           reset, and these are create-only/never-overwritten rows anyway.
  * Also clears OtpCode, so a half-finished OTP from a previous run cannot block
@@ -41,7 +41,6 @@ import { seedDemoData } from "../src/seed/seed.js";
 import { User } from "../src/models/User.js";
 import { Grievance } from "../src/models/Grievance.js";
 import { WageEntry } from "../src/models/WageEntry.js";
-import { SosAlert } from "../src/models/SosAlert.js";
 import {
   Document,
   OtpCode,
@@ -59,7 +58,6 @@ const yes = process.argv.includes("--yes") || process.argv.includes("-y");
 const owned = [
   ["Grievance", Grievance],
   ["WageEntry", WageEntry],
-  ["SosAlert", SosAlert],
   ["ChatMessage", ChatMessage],
   ["Document", Document],
   ["WorkerNotification", WorkerNotification],

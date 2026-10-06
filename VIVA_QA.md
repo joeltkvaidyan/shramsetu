@@ -261,7 +261,7 @@ are left to Rollup, which places them in the page chunk that uses them.
 
 Deliberately at the seams that hold logic, not by mocking everything:
 
-- **54 tests** across 5 files: wallet PIN lockout logic, the auth gate's four
+- **50 tests** across 4 files: wallet PIN lockout logic, the auth gate's four
   outcomes, the status badge's "never colour alone" accessibility contract,
   i18n bundle parity across all six languages, and the lazy-loading fallback's
   live-region semantics.
@@ -269,12 +269,12 @@ Deliberately at the seams that hold logic, not by mocking everything:
   `grievance.status.*` keys as English, and that the registry matches the
   languages the server and AI service accept — a mismatch there fails at
   runtime, for a real worker, so it fails in CI instead.
-- Server behaviour is covered by 50 tests plus 32 live end-to-end checks.
+- Server behaviour is covered by 46 tests plus 32 live end-to-end checks.
 
 **Q. Anything you'd change about the frontend?**
 
 The tests are unit and component level; there is no browser E2E suite. Playwright
-covering the OTP → grievance → SOS → acknowledge loop would catch integration
+covering the OTP → grievance → official-resolve loop would catch integration
 regressions the current split cannot see.
 
 ---
@@ -321,9 +321,9 @@ successful answer in the automated checks either.
 Run any of these live:
 
 ```bash
-cd server     && npm test                                  # 50 passed
-cd frontend   && npm test                                  # 54 passed
-cd ai-service && venv/Scripts/python -m pytest             # 71 passed
+cd server     && npm test                                  # 46 passed
+cd frontend   && npm test                                  # 50 passed
+cd ai-service && venv/Scripts/python -m pytest             # 90 passed
 cd server     && npm run verify                           # 32 live checks, both services
 cd ai-service && venv/Scripts/python eval/run_eval.py      # → eval/RESULTS.md (~30 s)
 ```
@@ -365,7 +365,7 @@ Better to volunteer this than be asked:
 1. Fix the translation path for named schemes (an entity-aware glossary for
    scheme names across all six languages) — highest value, it is a known
    measured failure, not a guess.
-2. Playwright E2E over the OTP → grievance → SOS → acknowledge loop.
+2. Playwright E2E over the OTP → grievance → official-resolve loop.
 3. Complete the `--full` eval so the eight in-domain questions have a real
    number instead of an honest gap.
 4. Redis-backed rate limiting and a real SMS gateway — both are deployment

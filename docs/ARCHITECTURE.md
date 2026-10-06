@@ -75,26 +75,6 @@ already passed the gate, so it can reorder but never admit a below-threshold
 chunk. Measured on the 70-question suite: hit@1 94%, hit@3 98%, retrieval
 refusals 12/13 — see [eval/ANALYSIS.md](../ai-service/eval/ANALYSIS.md).
 
-## SOS flow
-
-```mermaid
-sequenceDiagram
-    participant W as Worker (app)
-    participant E as Express
-    participant G as Government console
-    W->>E: POST /api/sos (location, token)
-    E->>E: Auth, scope, audit
-    E-->>W: 202 accepted, reference id
-    E->>G: SOS alert (console inbox)
-    W->>E: POST /api/sos/:id/resolve (status)
-    E->>G: status update
-    Note over W,E: SMS/call escalation is NOT wired —<br/>the alert exists only inside the app.
-```
-
-**Known limit:** SOS alerts reach the government console over the API but do
-not trigger an SMS, email or phone call. It is an in-app acknowledgement, not a
-push-to-volunteer system.
-
 ## Grievance flow
 
 ```mermaid
@@ -112,7 +92,7 @@ stateDiagram-v2
 
 Jurisdiction scoping is enforced in `server/src/utils/scope.js`: an official can
 only read and act on grievances inside their assigned state/district. This is
-covered by the server test suite (10 parity tests).
+covered by the server test suite (6 parity tests).
 
 `start-all.ps1` / `stop-all.ps1` manage the three app services on Windows;
 each can also be started manually (see README). The frontend talks only to
@@ -158,14 +138,14 @@ hanging until the Node proxy aborts at 120s. Past that bound it returns a fast
 
 | Path | Contents |
 |---|---|
-| `server/src/routes/` | auth, grievances, documents, government, notifications, workers, chat (AI proxy), wages, sos |
+| `server/src/routes/` | auth, grievances, documents, government, notifications, workers, chat (AI proxy), wages |
 | `server/src/middleware/` | `auth.js` (JWT + liveness cache), `rateLimit.js` |
 | `server/src/utils/` | `scope.js` (jurisdiction), `docKeys.js` (key wrapping), `fileValidation.js`, `audit.js` |
 | `server/src/seed/` | create-only bootstrap admin + demo officials/workers (`SEED_DEMO_DATA`) |
-| `server/tests/` | vitest: 50 tests — 40 security/scope + 10 wage/SOS parity (mongodb-memory-server) |
+| `server/tests/` | vitest: 46 tests — 40 security/scope + 6 wage parity (mongodb-memory-server) |
 | `ai-service/app/services/` | rag_service, translation_service, stt_service (faster-whisper), tts_service (local Meta MMS VITS), pii |
 | `ai-service/rag/` | `sample_docs/` (curated corpus with provenance headers), `loader.py`, `ingest.py`, FAISS index (generated, gitignored) |
-| `ai-service/tests/` | pytest (42 tests): corpus integrity, loader, RAG contract, PII, prompt injection, translation cache |
+| `ai-service/tests/` | pytest (90 tests): corpus integrity, loader, RAG contract, PII, prompt injection, translation cache |
 | `ai-service/eval/` | 70-question multilingual eval suite + `run_eval.py` → `RESULTS.md`; reasoning and limits in `ANALYSIS.md` |
 | `frontend/src/` | 16 pages, each a lazy chunk; `context/AuthContext`, `api/client.ts`, `i18n/locales/` (6 languages) |
 | `docs/archive/` | superseded FastAPI/SQLite-era documents; every file is prefixed `ARCHIVED_` — see [archive/README.md](archive/README.md) |

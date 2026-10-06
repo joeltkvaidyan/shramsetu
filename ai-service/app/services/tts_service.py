@@ -30,6 +30,8 @@ import wave
 
 from app.core.config import settings
 
+logger = logging.getLogger("shramsetu.tts")
+
 _MAX_TTS_CHARS = 5000
 # Parler is autoregressive: long single inputs degrade prosody and grow
 # latency super-linearly. Sentence-pack at this size (Parler), larger for MMS.

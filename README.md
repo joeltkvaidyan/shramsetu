@@ -6,9 +6,8 @@ secure encrypted document wallet, grievance filing with tracking, a
 jurisdiction-scoped government dashboard with notifications and audit logs,
 and a **multilingual AI welfare assistant** — RAG over curated government
 scheme documents — with **voice in/out**. The worker dashboard also carries a
-**QR digital ID card**, a **wage diary** that can pre-fill an unpaid-wages
-grievance, and an **emergency SOS** that reaches officials' dashboards
-(honest scope: dashboard delivery only — no SMS/push is sent).
+**QR digital ID card** and a **wage diary** that can pre-fill an unpaid-wages
+grievance (a day already recorded as fully paid is locked from further edits).
 
 Supported languages: **English, Hindi, Bengali, Telugu, Tamil, Malayalam**.
 
@@ -37,7 +36,7 @@ Supported languages: **English, Hindi, Bengali, Telugu, Tamil, Malayalam**.
 │  users·grievances│          │    citations + disclaimer   │
 │  documents·notifs│          │  · STT: faster-whisper small│
 │  audit·chat      │          │  · TTS: local MMS          │
-│  wages·sos       │          │                             │
+│  wages           │          │                             │
 └──────────────────┘          │  · PII stripped before any  │
                               │    external provider call   │
                               └─────────────────────────────┘
@@ -136,10 +135,10 @@ demo workers/grievances if the users collection is empty.
 
 | Suite | Command | Covers |
 |---|---|---|
-| Server unit/security | `cd server && npm test` | 50 tests: scoping, ownership, upload crypto, rate limits, auth hardening, wage/SOS parity |
-| Frontend unit/component | `cd frontend && npm test` | 54 tests: wallet PIN lockout, auth-gate routing, status badge a11y, i18n bundle parity |
-| AI service | `cd ai-service && venv/Scripts/python -m pytest` | 71 tests: corpus integrity, loader, RAG contract, PII, prompt injection, cold-start readiness |
-| End-to-end checks | `cd server && npm run verify` | 33 live checks across both services (incl. wage + SOS round trips). A check that needs an external provider we have no working key for prints `SKIP` with the reason instead of silently disappearing, and is never counted as a pass |
+| Server unit/security | `cd server && npm test` | 46 tests: scoping, ownership, upload crypto, rate limits, auth hardening, wage parity (incl. paid-day lock) |
+| Frontend unit/component | `cd frontend && npm test` | 50 tests: wallet PIN lockout, auth-gate routing, status badge a11y, i18n bundle parity |
+| AI service | `cd ai-service && venv/Scripts/python -m pytest` | 90 tests: corpus integrity, loader, RAG contract, PII, prompt injection, cold-start readiness |
+| End-to-end checks | `cd server && npm run verify` | 32 live checks across both services (incl. wage round trip, paid-day lock, SOS route removed). A check that needs an external provider we have no working key for prints `SKIP` with the reason instead of silently disappearing, and is never counted as a pass |
 | RAG eval harness | `venv/Scripts/python eval/run_eval.py` | hit@1/hit@3, retrieval refusals, per-language → `eval/RESULTS.md` |
 
 All four run in CI on every push (`.github/workflows/ci.yml`): server tests,

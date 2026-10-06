@@ -14,13 +14,8 @@
  *   /api/v1/government/notifications/send — POST send
  *   /api/v1/government/notifications     — GET list
  *   /api/v1/government/audit-logs        — GET (superadmin)
- *   /api/v1/sos                          — GET scoped SOS alerts
- *   /api/v1/sos/:id/acknowledge          — POST acknowledge
  */
 import axios from "axios";
-import type { SosAlert } from "../types";
-
-export type { SosAlert };
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "/api/v1";
 
@@ -318,29 +313,3 @@ export async function govGetAuditLogs(
   return data;
 }
 
-// ── SOS Alerts (dashboard-delivery only — no SMS is ever sent) ───────
-
-export interface SosAlertsResponse {
-  alerts: SosAlert[];
-}
-
-export async function govGetSosAlerts(
-  token: string
-): Promise<SosAlertsResponse> {
-  const { data } = await axios.get(`${API_BASE}/sos`, {
-    headers: authHeaders(token),
-  });
-  return data;
-}
-
-export async function govAcknowledgeSos(
-  token: string,
-  alertId: string
-): Promise<SosAlert> {
-  const { data } = await axios.post(
-    `${API_BASE}/sos/${alertId}/acknowledge`,
-    {},
-    { headers: authHeaders(token) }
-  );
-  return data;
-}

@@ -1,16 +1,12 @@
 /**
- * Phase 6 feature tests — wage log and SOS (smallest versions).
+ * Phase 6 feature tests — wage log (smallest versions).
  *
  * Covers:
  *  - wage upsert-by-date (no duplicates), validation (bad date, paid>agreed)
+ *  - paid-day lock: an entry already fully paid can no longer be edited (409)
  *  - ownership: a worker cannot delete another worker's entry
  *  - government JWT → 403 on worker wage routes
  *  - summary totals (agreed / paid / unpaid)
- *  - SOS: worker raise snapshots emergency contact + jurisdiction,
- *    delivery is dashboard_only (no SMS — stated honestly)
- *  - SOS scoping: district official sees only own district, acknowledges
- *    in-scope only; state official sees whole state; superadmin sees all;
- *    stateless official sees nothing
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import mongoose from "mongoose";
@@ -21,7 +17,6 @@ import { MongoMemoryServer } from "mongodb-memory-server";
 import app from "../src/app.js";
 import { User } from "../src/models/User.js";
 import { WageEntry } from "../src/models/WageEntry.js";
-import { SosAlert } from "../src/models/SosAlert.js";
 import { hashPassword } from "../src/utils/crypto.js";
 
 const api = supertest(app);
@@ -151,6 +146,28 @@ describe("Wage log", () => {
     expect(s.body.total_unpaid).toBe(300);
   });
 
+  it("locks a fully paid day: further edits to that date are rejected (409)", async () => {
+    const t = await loginAs(ids.wEKM);
+    const body = { work_date: "2026-10-01", agreed_amount: 800, paid_amount: 800 };
+
+    // Final settlement: partial → paid is allowed.
+    const settle = await api.post("/api/v1/wages").set(auth(t)).send(body);
+    expect(settle.status).toBe(201);
+    expect(settle.body.payment_status).toBe("paid");
+
+    // Any later edit of that same day is refused.
+    const edit = await api
+      .post("/api/v1/wages")
+      .set(auth(t))
+      .send({ ...body, paid_amount: 100 });
+    expect(edit.status).toBe(409);
+    expect(edit.body.code).toBe("wage_paid_locked");
+
+    // The stored entry still reads paid_amount=800.
+    const stored = await WageEntry.findById(settle.body.id);
+    expect(stored.paid_amount).toBe(800);
+  });
+
   it("worker cannot delete another worker's entry (404, no leak)", async () => {
     const mine = await WageEntry.findOne({ worker_id: ids.wEKM });
     const other = await loginAs(ids.wKozhikode);
@@ -166,66 +183,3 @@ describe("Wage log", () => {
   });
 });
 
-// ── SOS ──────────────────────────────────────────────────────────────
-describe("SOS alerts", () => {
-  let alertEKM, alertKozhikode, alertTamil;
-
-  it("worker raises an SOS: snapshots contact + jurisdiction, delivery=dashboard_only", async () => {
-    const t = await loginAs(ids.wEKM);
-    const r = await api.post("/api/v1/sos").set(auth(t)).send({ location_text: "Worksites near Kadavanthra", note: "No wages, employer threats" });
-    expect(r.status).toBe(201);
-    expect(r.body.delivery).toBe("dashboard_only");
-    expect(r.body.status).toBe("open");
-    expect(r.body.emergency_contact_number).toBe("9995500111");
-    expect(r.body.owner_state).toBe("Kerala");
-    expect(r.body.owner_district).toBe("Ernakulam");
-    alertEKM = r.body.id;
-
-    const other1 = await loginAs(ids.wKozhikode);
-    alertKozhikode = (await api.post("/api/v1/sos").set(auth(other1)).send({})).body.id;
-    const other2 = await loginAs(ids.wTamil);
-    alertTamil = (await api.post("/api/v1/sos").set(auth(other2)).send({})).body.id;
-  });
-
-  it("worker JWT gets 403 on the officials list", async () => {
-    const t = await loginAs(ids.wEKM);
-    expect((await api.get("/api/v1/sos").set(auth(t))).status).toBe(403);
-  });
-
-  it("district official sees only Ernakulam alerts; acknowledges in-scope", async () => {
-    const t = await loginAs(ids.distEKM);
-    const list = await api.get("/api/v1/sos").set(auth(t));
-    expect(list.status).toBe(200);
-    const idsSeen = list.body.alerts.map((a) => a.id);
-    expect(idsSeen).toContain(alertEKM);
-    expect(idsSeen).not.toContain(alertKozhikode);
-    expect(idsSeen).not.toContain(alertTamil);
-
-    const ack = await api.post(`/api/v1/sos/${alertEKM}/acknowledge`).set(auth(t));
-    expect(ack.status).toBe(200);
-    expect(ack.body.status).toBe("acknowledged");
-  });
-
-  it("district official cannot acknowledge an out-of-district alert (403)", async () => {
-    const t = await loginAs(ids.distEKM);
-    expect((await api.post(`/api/v1/sos/${alertKozhikode}/acknowledge`).set(auth(t))).status).toBe(403);
-  });
-
-  it("state official sees the whole state; superadmin sees all; stateless sees nothing", async () => {
-    const st = await loginAs(ids.stateKL);
-    const stList = await api.get("/api/v1/sos").set(auth(st));
-    const stIds = stList.body.alerts.map((a) => a.id);
-    expect(stIds).toContain(alertEKM);
-    expect(stIds).toContain(alertKozhikode);
-    expect(stIds).not.toContain(alertTamil);
-
-    const sa = await loginAs(ids.superadmin);
-    const saList = await api.get("/api/v1/sos").set(auth(sa));
-    expect(saList.body.alerts.map((a) => a.id)).toContain(alertTamil);
-
-    const nj = await loginAs(ids.stateless);
-    const njList = await api.get("/api/v1/sos").set(auth(nj));
-    expect(njList.body.alerts).toHaveLength(0);
-    expect((await api.post(`/api/v1/sos/${alertEKM}/acknowledge`).set(auth(nj))).status).toBe(403);
-  });
-});

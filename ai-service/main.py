@@ -76,6 +76,18 @@ async def lifespan(_app: FastAPI):
     # TTS is local now (MMS VITS) — prewarmed below alongside the rest.
     from app.services import translation_service
 
+    # Materialize the transformers import tree ON THIS THREAD before the
+    # prewarm threads below start racing each other into it. transformers
+    # ships a lazy module whose top-level __init__ is not safe to populate
+    # concurrently: two threads doing `from transformers import AutoConfig`
+    # / `AutoTokenizer` while a third is still executing transformers'
+    # __init__ hit a half-initialized module and raise a transient
+    # "cannot import name …" — which the warm-up registry then records as a
+    # permanent component failure. A completed top-level import makes every
+    # later lazy getattr a plain sys.modules lookup.
+    import sentence_transformers  # noqa: F401
+    from transformers import AutoConfig, AutoTokenizer, VitsModel  # noqa: F401
+
     rag_service.prewarm()
     # IndicTrans2: load + int8-quantize at boot in a background thread so the
     # first Indic /ask skips a cold model load that used to stall the endpoint

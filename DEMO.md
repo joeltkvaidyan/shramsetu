@@ -1,6 +1,6 @@
 # ShramSetu — Demo / Viva Guide
 
-A worker-facing labour-rights platform: file grievances, log wages, raise an SOS,
+A worker-facing labour-rights platform: file grievances, log wages,
 and ask an AI assistant about welfare schemes **in your own language** — with a
 government portal scoped by jurisdiction.
 
@@ -37,7 +37,7 @@ interrupted it. It prints which model is still loading:
 cd server && npm run demo:reset        # asks before deleting; add -- --yes to skip
 ```
 
-It deletes workers and everything they own (grievances, wage entries, SOS alerts,
+It deletes workers and everything they own (grievances, wage entries,
 chat history, notifications, wallet metadata), then re-seeds from the same
 seeder the server boot uses. Government officials and the bootstrap admin are
 **kept** so logins keep working. It refuses to run when `ENV=production`. With
@@ -73,21 +73,19 @@ all 10** — that single contrast is the strongest scoping proof you have.
 ## 2. Six-minute demo flow
 
 The flow is built so each step sets up the next: the grievance you file is the
-one the official acts on, the wage shortfall becomes a complaint, the SOS is the
-alert the district official acknowledges.
+one the official acts on, and the wage shortfall becomes a complaint.
 
 ```mermaid
 flowchart TD
     A["Landing → pick language"] --> B["Worker OTP login<br/>(OTP read from server terminal)"]
     B --> C["File grievance<br/>→ GR number + SLA deadline"]
     C --> D["Log a day's wages<br/>→ unpaid total appears"]
-    D --> E["Raise SOS<br/>→ dashboard delivery only"]
-    E --> F["Ask the AI assistant<br/>→ grounded + cited / or honest refusal"]
-    F --> G["Upload a document to the wallet<br/>(PIN-locked, AES-256-GCM at rest)"]
-    G --> H["Government portal<br/>→ acknowledge the SOS as EKM001"]
-    H --> I["Switch to ADMIN001<br/>→ all 10 workers, aggregated charts"]
-    I --> J["Send a targeted notification<br/>→ only construction workers receive it"]
-    J --> K["Audit log<br/>→ every action recorded with actor and IP"]
+    D --> E["Ask the AI assistant<br/>→ grounded + cited / or honest refusal"]
+    E --> F["Upload a document to the wallet<br/>(PIN-locked, AES-256-GCM at rest)"]
+    F --> G["Government portal<br/>→ open the grievance as EKM001"]
+    G --> H["Switch to ADMIN001<br/>→ all 10 workers, aggregated charts"]
+    H --> I["Send a targeted notification<br/>→ only construction workers receive it"]
+    I --> J["Audit log<br/>→ every action recorded with actor and IP"]
 ```
 
 ### Step-by-step, with what to say
@@ -112,15 +110,14 @@ flowchart TD
 4. **Wage diary** — log a day with agreed 700 / paid 450 → the month summary
    shows the unpaid total → **"File unpaid wage complaint"** opens the grievance
    form pre-filled (category `unpaid_wages`, amounts in the description).
+   Then settle that day (paid = agreed): the entry turns green **and locks** —
+   re-saving the same date is refused with "This day is fully paid and can no
+   longer be edited" (API answers 409). A settled wage record cannot be
+   rewritten after the fact.
    *Entries are self-reported and never verified against an employer — the UI
    says so under the list.*
 
-5. **SOS** — the red tile → the modal states plainly that the alert appears on
-   **officials' dashboards only, and no SMS or call is sent**. Raise it. This is
-   an honest limit, not a missing feature; the state is named
-   `dashboard_only` in the code and in the API.
-
-6. **AI assistant** — two questions, in this order:
+5. **AI assistant** — two questions, in this order:
    - *"What is the minimum wage and which law fixes it?"* → a **grounded** answer
      citing the **Code on Wages, 2019**, with a sources panel showing the
      official URL and last-verified date, and the "informational only, not legal
@@ -134,21 +131,21 @@ flowchart TD
    Hindi and ask in Hindi — retrieval still grounds the answer because the
    question is translated to English *before* retrieval.
 
-7. **Document wallet** — set a PIN (4–8 digits; five wrong attempts locks it
+6. **Document wallet** — set a PIN (4–8 digits; five wrong attempts locks it
    for 5 minutes), upload a PDF, download it back. Files are AES-256-GCM
    encrypted at rest with per-file keys wrapped under `DOC_MASTER_KEY`.
    *The PIN is a convenience screen-lock, not encryption* — say this if asked.
 
-8. **Jurisdiction scoping** — log in as `EKM001 / Ernakulam@123` → worker list
+7. **Jurisdiction scoping** — log in as `EKM001 / Ernakulam@123` → worker list
    shows **only the 3 Ernakulam workers**; open a Coimbatore grievance → **not
    found**. Then `ADMIN001 / Admin@123` → Overview shows **all 10 workers / 11
    grievances** with category and state charts (Mongo aggregation pipelines).
 
-9. **Targeted notification** — target `occupation: construction` → **only the 2
+8. **Targeted notification** — target `occupation: construction` → **only the 2
    construction workers** receive it. A non-superadmin cannot target "all
    workers" or another state (HTTP 403).
 
-10. **Audit log** — every login, grievance action and notification send is
+9. **Audit log** — every login, grievance action and notification send is
     recorded with actor, IP and outcome.
 
 ---
@@ -158,9 +155,9 @@ flowchart TD
 Run it. These are the numbers as of this commit:
 
 ```bash
-cd server    && npm test    # 50 passed  — scoping, ownership, upload crypto, rate limits
-cd frontend  && npm test    # 54 passed  — wallet PIN lockout, auth gate, i18n bundle parity
-cd ai-service && venv/Scripts/python -m pytest   # 71 passed — corpus, RAG, PII, injection, cold start
+cd server    && npm test    # 46 passed  — scoping, ownership, upload crypto, rate limits
+cd frontend  && npm test    # 50 passed  — wallet PIN lockout, auth gate, i18n bundle parity
+cd ai-service && venv/Scripts/python -m pytest   # 90 passed — corpus, RAG, PII, injection, cold start
 cd server    && npm run verify                  # 32 live checks across BOTH services
 ```
 
@@ -201,9 +198,8 @@ what produces confident wrong answers.
 These are in [docs/SECURITY.md](docs/SECURITY.md) and [README.md](README.md);
 rehearse them, because volunteering a limit reads as competence.
 
-- **No SMS delivery.** OTPs print to a terminal and SOS alerts reach
-  government dashboards only. There is no real SMS gateway and no verified
-  government integration.
+- **No SMS delivery.** OTPs print to a terminal; there is no real SMS
+  gateway and no verified government integration.
 - **OTP is development-only.** The code prints the OTP rather than sending it,
   and it works only on the terminal that owns the server.
 - **AI is informational, not legal advice**, and only answers from the bundled

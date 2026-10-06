@@ -82,6 +82,12 @@ export default function WageLogPage() {
       setFormError(t("wages.invalidAmounts"));
       return;
     }
+    // Paid days are locked: a fully settled day sheet can no longer be edited.
+    const existing = (entries ?? []).find((e) => day(e.work_date) === workDate);
+    if (existing && existing.payment_status === "paid") {
+      setFormError(t("wages.paidLocked"));
+      return;
+    }
     setSaving(true);
     try {
       // Upsert by date — saving the same day again replaces the entry.
@@ -96,7 +102,9 @@ export default function WageLogPage() {
       setPaidAmount("");
       await load();
     } catch (err) {
-      setFormError(apiErrorMessage(err, t("common.error")));
+      // Server-side paid-day lock (409) — localized message, not the API's English detail.
+      const code = (err as any)?.response?.data?.code;
+      setFormError(code === "wage_paid_locked" ? t("wages.paidLocked") : apiErrorMessage(err, t("common.error")));
     } finally {
       setSaving(false);
     }

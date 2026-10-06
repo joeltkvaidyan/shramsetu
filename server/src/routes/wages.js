@@ -121,6 +121,19 @@ router.post("/", authenticate, requireWorker, async (req, res) => {
       payment_status ||
       (paid <= 0 ? "unpaid" : paid >= agreed ? "paid" : "partial");
 
+    // Lock paid days: an entry already recorded as fully paid can no longer
+    // be edited (wage fix: salary already settled). Unpaid/partial stay open.
+    const existing = await WageEntry.findOne({
+      worker_id: req.userId,
+      work_date: { $gte: bounds.start, $lt: bounds.end },
+    });
+    if (existing && existing.payment_status === "paid") {
+      return res.status(409).json({
+        detail: "This day is fully paid and can no longer be edited.",
+        code: "wage_paid_locked",
+      });
+    }
+
     const entry = await WageEntry.findOneAndUpdate(
       { worker_id: req.userId, work_date: { $gte: bounds.start, $lt: bounds.end } },
       {
