@@ -142,6 +142,16 @@ check("wage entry delete (ownership-scoped)", r.status === 200);
 r = await fetch(`${B}/sos`, { method: "POST", headers: { ...wh, ...jsonHeaders }, body: JSON.stringify({ location_text: "should 404" }) });
 check("SOS route removed (404)", r.status === 404, `got ${r.status}`);
 
+// Officials monitoring: superadmin sees every official + scope counts;
+// a state official must NOT be able to enumerate officials (403).
+const offRows = (await (await fetch(`${B}/government/officials`, { headers: gt })).json()).officials;
+check("superadmin sees officials with jurisdictions", Array.isArray(offRows) && offRows.some((o) => o.employee_id === "KL001" && o.state === "Kerala") && offRows.some((o) => o.employee_id === "EKM001" && o.district === "Ernakulam"), `rows=${offRows?.length}`);
+
+r = await fetch(`${B}/auth/government/login`, { method: "POST", headers: jsonHeaders, body: JSON.stringify({ employee_id: "KL001", password: "Kerala@123" }) });
+const kl = await r.json();
+r = await fetch(`${B}/government/officials`, { headers: { Authorization: `Bearer ${kl.access_token}` } });
+check("state official cannot enumerate officials (403)", r.status === 403, `got ${r.status}`);
+
 // ── 9. AI assistant via Node proxy ───────────────────────────────────
 // Readiness first, so a down AI service fails HERE with a clear message
 // instead of quietly passing on the Node server's fallback reply. /health/ready

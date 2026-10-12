@@ -284,6 +284,34 @@ export async function govGetNotifications(
   return data;
 }
 
+// ── Officials directory (superadmin monitoring) ─────────────────────
+
+export interface GovernmentOfficial {
+  id: string;
+  employee_id: string | null;
+  full_name: string;
+  department: string | null;
+  state: string | null;
+  district: string | null;
+  is_superadmin: boolean;
+  workers_in_scope: number;
+  grievances_in_scope: number;
+}
+
+export interface OfficialsResponse {
+  officials: GovernmentOfficial[];
+}
+
+/** Superadmin only — the server answers 403 for any other official. */
+export async function govGetOfficials(
+  token: string
+): Promise<OfficialsResponse> {
+  const { data } = await axios.get(`${API_BASE}/government/officials`, {
+    headers: authHeaders(token),
+  });
+  return data;
+}
+
 // ── Audit Logs (superadmin only) ────────────────────────────────────
 
 export interface AuditLog {

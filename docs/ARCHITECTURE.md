@@ -142,10 +142,10 @@ hanging until the Node proxy aborts at 120s. Past that bound it returns a fast
 | `server/src/middleware/` | `auth.js` (JWT + liveness cache), `rateLimit.js` |
 | `server/src/utils/` | `scope.js` (jurisdiction), `docKeys.js` (key wrapping), `fileValidation.js`, `audit.js` |
 | `server/src/seed/` | create-only bootstrap admin + demo officials/workers (`SEED_DEMO_DATA`) |
-| `server/tests/` | vitest: 46 tests — 40 security/scope + 6 wage parity (mongodb-memory-server) |
+| `server/tests/` | vitest: 49 tests — 43 security/scope + 6 wage parity (mongodb-memory-server) |
 | `ai-service/app/services/` | rag_service, translation_service, stt_service (faster-whisper), tts_service (local Meta MMS VITS), pii |
 | `ai-service/rag/` | `sample_docs/` (curated corpus with provenance headers), `loader.py`, `ingest.py`, FAISS index (generated, gitignored) |
-| `ai-service/tests/` | pytest (90 tests): corpus integrity, loader, RAG contract, PII, prompt injection, translation cache |
+| `ai-service/tests/` | pytest (92 tests): corpus integrity, loader, RAG contract, PII, prompt injection, translation cache, STT transcribe regression |
 | `ai-service/eval/` | 70-question multilingual eval suite + `run_eval.py` → `RESULTS.md`; reasoning and limits in `ANALYSIS.md` |
 | `frontend/src/` | 16 pages, each a lazy chunk; `context/AuthContext`, `api/client.ts`, `i18n/locales/` (6 languages) |
 | `docs/archive/` | superseded FastAPI/SQLite-era documents; every file is prefixed `ARCHIVED_` — see [archive/README.md](archive/README.md) |

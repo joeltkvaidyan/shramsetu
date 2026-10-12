@@ -269,7 +269,7 @@ Deliberately at the seams that hold logic, not by mocking everything:
   `grievance.status.*` keys as English, and that the registry matches the
   languages the server and AI service accept — a mismatch there fails at
   runtime, for a real worker, so it fails in CI instead.
-- Server behaviour is covered by 46 tests plus 32 live end-to-end checks.
+- Server behaviour is covered by 49 tests plus 34 live end-to-end checks.
 
 **Q. Anything you'd change about the frontend?**
 
@@ -321,10 +321,10 @@ successful answer in the automated checks either.
 Run any of these live:
 
 ```bash
-cd server     && npm test                                  # 46 passed
+cd server     && npm test                                  # 49 passed
 cd frontend   && npm test                                  # 50 passed
-cd ai-service && venv/Scripts/python -m pytest             # 90 passed
-cd server     && npm run verify                           # 32 live checks, both services
+cd ai-service && venv/Scripts/python -m pytest             # 92 passed
+cd server     && npm run verify                           # 34 live checks, both services
 cd ai-service && venv/Scripts/python eval/run_eval.py      # → eval/RESULTS.md (~30 s)
 ```
 

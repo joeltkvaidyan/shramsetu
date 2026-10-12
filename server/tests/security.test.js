@@ -307,6 +307,44 @@ describe("Superadmin", () => {
     expect(r.status).toBe(200);
     expect(Array.isArray(r.body.logs)).toBe(true);
   });
+
+  it("sees every official with jurisdiction + scope counts (monitoring view)", async () => {
+    const r = await api.get("/api/v1/government/officials").set(auth(t));
+    expect(r.status).toBe(200);
+    const rows = r.body.officials;
+    expect(rows.map((o) => o.employee_id).sort()).toEqual(["EKM001", "KL001", "NJ001", "SA001"]);
+    const byId = Object.fromEntries(rows.map((o) => [o.employee_id, o]));
+
+    // State official: one state, no district — whole Kerala.
+    expect(byId.KL001.state).toBe("Kerala");
+    expect(byId.KL001.district).toBeNull();
+    expect(byId.KL001.is_superadmin).toBe(false);
+    expect(byId.KL001.workers_in_scope).toBe(2);
+    expect(byId.KL001.grievances_in_scope).toBe(2);
+
+    // District official: one district inside that state.
+    expect(byId.EKM001.district).toBe("Ernakulam");
+    expect(byId.EKM001.workers_in_scope).toBe(1);
+    expect(byId.EKM001.grievances_in_scope).toBe(1);
+
+    // Superadmin: everything.
+    expect(byId.SA001.is_superadmin).toBe(true);
+    expect(byId.SA001.workers_in_scope).toBe(4);
+    expect(byId.SA001.grievances_in_scope).toBe(3);
+
+    // Fail-closed official (no jurisdiction): a scope of exactly zero.
+    expect(byId.NJ001.workers_in_scope).toBe(0);
+    expect(byId.NJ001.grievances_in_scope).toBe(0);
+  });
+});
+
+describe("Officials directory is superadmin-only", () => {
+  it("state, district and stateless officials all get 403", async () => {
+    for (const who of [ids.stateKL, ids.distEKM, ids.stateless]) {
+      const t = await loginAs(who);
+      expect((await api.get("/api/v1/government/officials").set(auth(t))).status).toBe(403);
+    }
+  });
 });
 
 describe("Worker JWT is rejected on every /government route", () => {
@@ -323,6 +361,7 @@ describe("Worker JWT is rejected on every /government route", () => {
     ["POST", `/api/v1/government/grievances/${ids.gInScope}/status`],
     ["POST", `/api/v1/government/grievances/${ids.gInScope}/comment`],
     ["POST", "/api/v1/government/notifications/send"],
+    ["GET", "/api/v1/government/officials"],
     ["GET", "/api/v1/government/audit-logs"],
   ];
 

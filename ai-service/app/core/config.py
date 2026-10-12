@@ -81,20 +81,41 @@ class Settings(BaseSettings):
     # service actually hears, cached after first use).
     WHISPER_INDIC_MODEL: str = ""
     WHISPER_INDIC_MODELS: dict[str, str] = {
-        "hi": "vasista22/whisper-hindi-medium",
+        # faster-whisper needs CTranslate2 `model.bin`, but the upstream HF
+        # repos ship PyTorch weights only (`pytorch_model.bin`/`safetensors`) —
+        # loading them by repo id 404s on model.bin and falls back to the
+        # general model. That is exactly what happened to `hi`: it pointed at
+        # a locally converted `models/whisper-hindi-medium-ct2` directory that
+        # was never created (and whose path resolved inside `app/`), so every
+        # Hindi request ran on the weak `small` model and /health reported a
+        # permanent `stt_indic` warm-up failure.
+        # `ukta-app/whisper-hindi-ct2` is a published int8 CT2 conversion of
+        # vasista22/whisper-hindi-small (Speech Lab, IIT Madras) — a real
+        # model.bin, ~248MB, same int8 dtype the box runs at, so it fits next
+        # to the general model on the 7.7GB demo machine. Repo ids are
+        # fetched into models/<org>/<name> as plain files by
+        # stt_service._resolve_model_source (see why there).
+        "hi": "ukta-app/whisper-hindi-ct2",
         "bn": "bengaliAI/tugstugi_bengaliai-regional-asr_whisper-medium",
         "te": "parambharat/whisper-small-te",
         "ta": "parambharat/whisper-small-ta",
-        "ml": "parambharat/whisper-small-ml",
+        # `ml`: parambharat/whisper-small-ml ships PyTorch weights only (no
+        # CT2 model.bin) so faster-whisper 404s and silently falls back to
+        # `small`, which hallucinates repeated syllables in Malayalam and the
+        # garbage-guard then 503s. CXDuncan/whisper-small-ml-ct2 is the CT2
+        # conversion of a Malayalam fine-tune (IndicVoices) with model.bin.
+        "ml": "CXDuncan/whisper-small-ml-ct2",
     }
     # Max audio accepted at /transcribe (MB) — bounds CPU time and memory.
     MAX_AUDIO_MB: int = 15
 
     # --- Voice: text-to-speech ---
-    # Primary: AI4Bharat IndicParler-TTS (gated HF repo — needs HF_TOKEN with
-    # the auto-approval accepted once; parler-tts + espeak-ng required).
-    # Fallback: local Meta MMS VITS. Both run locally at synthesis time — no
-    # provider keys. See app/services/tts_service.py.
+    # Primary: local Meta MMS VITS — fast (~1.4-2.7s per sentence across all
+    # six languages, measured). Fallback: AI4Bharat IndicParler-TTS (gated HF
+    # repo — needs HF_TOKEN with the auto-approval accepted once; parler-tts
+    # + espeak-ng required) — autoregressive at ~24s of CPU per second of
+    # audio on this box, so it loads on demand only. Both run locally at
+    # synthesis time — no provider keys. See app/services/tts_service.py.
     TTS_MODEL: str = "ai4bharat/indic-parler-tts"
 
     # --- Query translation (RAG retrieval aid) ---
@@ -106,7 +127,7 @@ class Settings(BaseSettings):
     # TRANSLATION_FALLBACK_MODEL (Meta NLLB-200, ungated) is used automatically.
 
     # --- Cloud speech/stt/tts fallback ladder (all optional) ---
-    # Voice is LOCAL first (Parler -> MMS for TTS; faster-whisper for STT). If
+    # Voice is LOCAL first (MMS -> Parler for TTS; faster-whisper for STT). If
     # the local path can't serve a language, these keys add a cloud hop that
     # the service will take instead of returning an error. Order is tried
     # lowest index first.
@@ -119,8 +140,8 @@ class Settings(BaseSettings):
     #   4. local general model (last resort, same as 1)
     #
     # TTS ladder (per request):
-    #   0. IndicParler-TTS (ai4bharat/indic-parler-tts, gated HF)
-    #   1. local Meta MMS VITS
+    #   0. local Meta MMS VITS
+    #   1. IndicParler-TTS (ai4bharat/indic-parler-tts, gated HF)
     #   2. OpenRouter tts   (OPENROUTER_API_KEY + OPENROUTER_TTS_MODEL)
     #   3. Groq TTS         (GROQ_API_KEY + GROQ_TTS_MODEL)
     #   4. local MMS (last resort)

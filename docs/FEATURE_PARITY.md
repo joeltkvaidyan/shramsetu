@@ -67,9 +67,9 @@ generated a value, and `qrcode.react` was installed but never imported.
 
 | Check | Result |
 |---|---|
-| `npm test` (server) | **46/46** — 40 security + 6 parity tests (`tests/parity.test.js`: wage upsert/validation/summary/paid-day lock/ownership-delete/gov-403) |
+| `npm test` (server) | **49/49** — 43 security/scope + 6 parity tests (`tests/parity.test.js`: wage upsert/validation/summary/paid-day lock/ownership-delete/gov-403; security suite adds the superadmin officials-monitoring view: correct scope counts + 403 for state/district/stateless/worker JWTs) |
 | `npx tsc -b` + `npm run build` (frontend) | clean |
-| `npm run verify` (live stack :8000/:8100) | **32/32** — live checks include: wage upsert→partial, same-day upsert→paid (no dup row), summary totals, paid day locked (edit after paid → 409), ownership delete, SOS route removed (404) |
+| `npm run verify` (live stack :8000/:8100) | **34 checks** — live checks include: wage upsert→partial, same-day upsert→paid (no dup row), summary totals, paid day locked (edit after paid → 409), ownership delete, SOS route removed (404), superadmin officials list with jurisdictions, state official blocked from enumerating officials (403). Expects the seeded dataset (10 workers) — a stray test registration makes the three seed-count checks fail until `npm run demo:reset` |
 
 Known flake (pre-existing, unrelated to these features): the very first
 `chat/ask` after a cold AI-service start can outlive the Node proxy's abort

@@ -31,6 +31,8 @@ import logging
 import os
 import threading
 import unicodedata
+from collections import Counter
+from pathlib import Path
 
 from app.core.config import settings
 
@@ -131,12 +133,75 @@ def _is_degenerate(text: str) -> bool:
             counts[ch] = counts.get(ch, 0) + 1
         if max(counts.values()) / len(compact) > 0.5:
             return True
+
+    # 4. PHRASE repetition: forced decoding also fails as a whole clause
+    #    repeated end-to-end ("और न्यूनतम मजदूरी के बारे में" x10 was returned as
+    #    a successful /transcribe result). Such a transcript uses plenty of
+    #    distinct characters, so checks 2-3 stay green — look at WORD reuse:
+    #    either almost no vocabulary variety, or one n-gram owning most of
+    #    the clip. Natural speech, even repetitive speech, does neither.
+    tokens = text.split()
+    if len(tokens) >= 8:
+        words = [tok.casefold() for tok in tokens]
+        if len(set(words)) <= max(3, len(words) // 8):
+            return True
+        for n in (3, 4, 5, 6):
+            if len(words) < n * 2:
+                continue
+            runs = Counter(tuple(words[i : i + n]) for i in range(len(words) - n + 1))
+            top = runs.most_common(1)[0][1]
+            if top >= 3 and top * n * 2 >= len(words):
+                return True
     return False
+
+
+# Where HF repo ids are materialised as plain files (gitignored; the same
+# folder already holds the translation models). See _resolve_model_source.
+_MODELS_DIR = Path(__file__).resolve().parents[2] / "models"
+
+
+def _looks_like_repo_id(ref: str) -> bool:
+    """`org/name` (a Hugging Face repo id) vs a bare size name (`small`)
+    vs a filesystem path (D:/..., ./models/..., C:\\...)."""
+    if "/" not in ref or "\\" in ref:
+        return False
+    if ref.startswith((".", "/", "~")) or (len(ref) > 1 and ref[1] == ":"):
+        return False
+    return True
+
+
+def _resolve_model_source(ref: str) -> str:
+    """Turn a model reference into something WhisperModel can load HERE.
+
+    - an existing local directory is used as-is;
+    - an HF repo id (`org/name`) is fetched into `models/<org>/<name>` with
+      `snapshot_download(local_dir=...)`, which writes plain files. The
+      default hub cache instead links each snapshot file with `os.symlink`,
+      which Windows refuses without Developer Mode (WinError 1314): the
+      huggingface_hub probe that is supposed to detect that sets its result
+      to True *before* probing, and snapshot_download's thread pool lets a
+      second file link in that window — the OSError escapes uncaught and
+      aborts the whole model load. Every per-language fine-tune went through
+      that path, so a first use of a language could kill STT at boot;
+    - a bare size name (`small`) stays on faster-whisper's default path,
+      which resolves to the already-cached general model.
+    """
+    if os.path.isdir(ref):
+        return ref
+    if not _looks_like_repo_id(ref):
+        return ref
+    target = _MODELS_DIR / ref
+    if not (target / "model.bin").is_file():
+        from huggingface_hub import snapshot_download
+
+        logger.info("STT: fetching %s -> %s (plain files, no symlinks)", ref, target)
+        snapshot_download(repo_id=ref, local_dir=str(target))
+    return str(target)
 
 
 def _get_local_model(model_size: str | None = None):
     """Lazy-load faster-whisper once per model size, thread-safely. The first
-    load of each size comes from the local Hugging Face cache (no download)."""
+    load of each size comes from the local cache (or models/ after a fetch)."""
     size = model_size or settings.WHISPER_MODEL_SIZE
     model = _local_models.get(size)
     if model is None:
@@ -145,17 +210,38 @@ def _get_local_model(model_size: str | None = None):
             if model is None:
                 from faster_whisper import WhisperModel
 
+                source = _resolve_model_source(size)
                 logger.info(
                     "Loading faster-whisper model=%s device=%s compute=%s",
-                    size,
+                    source,
                     settings.WHISPER_DEVICE,
                     settings.WHISPER_COMPUTE_TYPE,
                 )
-                model = WhisperModel(
-                    size,
-                    device=settings.WHISPER_DEVICE,
-                    compute_type=settings.WHISPER_COMPUTE_TYPE,
-                )
+                try:
+                    model = WhisperModel(
+                        source,
+                        device=settings.WHISPER_DEVICE,
+                        compute_type=settings.WHISPER_COMPUTE_TYPE,
+                    )
+                except OSError:
+                    # Bare size name on the default (hub-cache) path: the
+                    # symlink probe above fails ONCE per cache dir and then
+                    # stays False, so a straight retry takes the copy path
+                    # instead of the crashing symlink path. Anything already
+                    # resolved to a local directory is not retried.
+                    if source != size:
+                        raise
+                    logger.warning(
+                        "faster-whisper load of %r failed; retrying once (%s)",
+                        size,
+                        "probe already cached — expecting copy fallback",
+                        exc_info=True,
+                    )
+                    model = WhisperModel(
+                        source,
+                        device=settings.WHISPER_DEVICE,
+                        compute_type=settings.WHISPER_COMPUTE_TYPE,
+                    )
                 _local_models[size] = model
     return model
 
@@ -163,14 +249,41 @@ def _get_local_model(model_size: str | None = None):
 def _indic_model_for(language: str | None) -> str | None:
     """Which fine-tuned Indic checkpoint serves this language.
     Per-language map first, single WHISPER_INDIC_MODEL override second,
-    None = the general model. English never uses an Indic fine-tune."""
+    None = the general model. English never uses an Indic fine-tune.
+
+    An entry may name a local directory (a CT2 conversion made on this
+    machine). When that directory is absent the rung is treated as
+    *unconfigured* instead of being passed to WhisperModel: a missing path
+    raises `ValueError: Invalid model size '<path>'`, which used to surface
+    as a permanent `stt_indic` failure in /health while every request
+    silently fell back to the general model anyway. An HF repo id (contains
+    no path markers) is passed through untouched — a genuine download
+    failure there SHOULD still be visible as a warm-up failure.
+    """
     if not language or language == "en":
         return None
-    return (
+    candidate = (
         settings.WHISPER_INDIC_MODELS.get(language)
         or settings.WHISPER_INDIC_MODEL
         or None
     )
+    if not candidate:
+        return None
+    looks_local = (
+        candidate.startswith((".", "/", "~"))
+        or "\\" in candidate
+        or (len(candidate) > 1 and candidate[1] == ":")
+        or os.path.isdir(os.path.expanduser(candidate))
+    )
+    if looks_local and not os.path.isdir(os.path.expanduser(candidate)):
+        logger.warning(
+            "Fine-tuned checkpoint for %r points at missing local path %r; "
+            "treating it as unconfigured (language falls back to the general model)",
+            language,
+            candidate,
+        )
+        return None
+    return candidate
 
 
 def _model_for(language: str | None, provider: str = "auto"):
@@ -268,10 +381,16 @@ def _cloud_model_for(language: str | None, rung: int) -> object | None:
     return None
 
 
-def _transcribe_local(file_bytes: bytes, filename: str, whisper_language: str | None, model) -> str:
+def _transcribe_local(file_bytes: bytes, filename: str, whisper_language: str | None) -> str:
     """faster-whisper accepts any ffmpeg-readable container (webm/opus from
     MediaRecorder, wav, mp3, m4a...). VAD filtering drops silence/hallucinated
-    repeats that pure-Whisper models emit on quiet clips."""
+    repeats that pure-Whisper models emit on quiet clips.
+
+    The model comes from the `_model_for` ladder here, not from the caller —
+    a leftover unused `model` parameter (shadowed on the first line below)
+    made `transcribe_audio`'s 3-arg call raise TypeError → 500 on every
+    /transcribe request.
+    """
     model = _model_for(whisper_language)
     prompt = _CONTEXT_PROMPTS.get(whisper_language or "", _CONTEXT_PROMPTS["en"])
 
@@ -389,7 +508,10 @@ def prewarm() -> None:
     warmup.REGISTRY.track("stt", _load, required=False)
     # Prewarm only the Hindi fine-tune (the demo language); the other
     # per-language checkpoints load lazily on first use and stay cached.
-    indic_first = settings.WHISPER_INDIC_MODELS.get("hi") or settings.WHISPER_INDIC_MODEL
+    # Routed through _indic_model_for so an absent local checkpoint dir is
+    # skipped (as unconfigured) instead of recording a permanent warm-up
+    # failure for the demo language.
+    indic_first = _indic_model_for("hi")
     if indic_first:
         warmup.REGISTRY.track(
             "stt_indic",

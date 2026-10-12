@@ -9,7 +9,9 @@ import {
   govGetGrievances,
   govUpdateGrievanceStatus,
   govGetNotifications,
+  govGetOfficials,
   govGetAuditLogs,
+  type GovernmentOfficial,
   type DashboardStats,
   type WorkerRecord,
   type GovGrievance,
@@ -17,7 +19,7 @@ import {
   type AuditLog,
 } from "../api/governmentClient";
 
-type Tab = "overview" | "grievances" | "workers" | "notifications" | "audit";
+type Tab = "overview" | "grievances" | "workers" | "notifications" | "officials" | "audit";
 
 export default function GovernmentDashboardPage() {
   const navigate = useNavigate();
@@ -30,6 +32,7 @@ export default function GovernmentDashboardPage() {
   const [grievances, setGrievances] = useState<GovGrievance[]>([]);
   const [notifications, setNotifications] = useState<GovNotification[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [officials, setOfficials] = useState<GovernmentOfficial[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [grievanceStatusFilter, setGrievanceStatusFilter] = useState("");
   const [grievanceCategoryFilter, setGrievanceCategoryFilter] = useState("");
@@ -62,6 +65,9 @@ export default function GovernmentDashboardPage() {
       } else if (activeTab === "notifications") {
         const res = await govGetNotifications(token);
         setNotifications(res.notifications || []);
+      } else if (activeTab === "officials") {
+        const res = await govGetOfficials(token);
+        setOfficials(res.officials || []);
       } else if (activeTab === "audit") {
         const res = await govGetAuditLogs(token);
         setAuditLogs(res.logs || []);
@@ -99,6 +105,11 @@ export default function GovernmentDashboardPage() {
     { key: "grievances", icon: "📢", label: "Grievances" },
     { key: "workers", icon: "👷", label: "Workers" },
     { key: "notifications", icon: "🔔", label: "Notifications" },
+    // Officials monitoring is superadmin-only — hidden here and 403-guarded
+    // server-side, so ordinary state/district officials never see the tab.
+    ...(govUser.is_superadmin
+      ? [{ key: "officials" as Tab, icon: "👥", label: "Officials" }]
+      : []),
     { key: "audit", icon: "📋", label: "Audit Logs" },
   ];
 
@@ -395,6 +406,69 @@ export default function GovernmentDashboardPage() {
         {/* ── Notifications Tab ──────────────────────────────── */}
         {!loading && activeTab === "notifications" && token && (
           <NotificationsPanel token={token} notifications={notifications} onSent={loadTabData} />
+        )}
+
+        {/* ── Officials Tab (superadmin monitoring) ──────── */}
+        {!loading && activeTab === "officials" && govUser.is_superadmin && (
+          <div className="space-y-4">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-slate-700 text-slate-400">
+                    <th className="text-left py-3 px-3">Employee ID</th>
+                    <th className="text-left py-3 px-3">Name</th>
+                    <th className="text-left py-3 px-3">Role</th>
+                    <th className="text-left py-3 px-3">Jurisdiction</th>
+                    <th className="text-right py-3 px-3">Workers</th>
+                    <th className="text-right py-3 px-3">Grievances</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {officials.map((o) => (
+                    <tr key={o.id} className="border-b border-slate-800 hover:bg-slate-800/50 transition">
+                      <td className="py-3 px-3 font-mono text-blue-400">{o.employee_id || "-"}</td>
+                      <td className="py-3 px-3">{o.full_name}</td>
+                      <td className="py-3 px-3">
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            o.is_superadmin
+                              ? "bg-amber-500/20 text-amber-400"
+                              : "bg-slate-500/20 text-slate-300"
+                          }`}
+                        >
+                          {o.is_superadmin
+                            ? "Super Admin"
+                            : o.district
+                              ? "District Official"
+                              : o.state
+                                ? "State Official"
+                                : "Official"}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 text-slate-300">
+                        {o.is_superadmin
+                          ? "All states"
+                          : o.state
+                            ? `${o.state}${o.district ? ` / ${o.district}` : ""}`
+                            : "No jurisdiction"}
+                      </td>
+                      <td className="py-3 px-3 text-right tabular-nums">{o.workers_in_scope}</td>
+                      <td className="py-3 px-3 text-right tabular-nums">{o.grievances_in_scope}</td>
+                    </tr>
+                  ))}
+                  {officials.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center text-slate-500">No officials found</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <p className="text-xs text-slate-500">
+              Every official logs in with their own employee ID and sees only the jurisdiction above.
+              Counts are live totals for that scope — the same numbers they see when they sign in.
+            </p>
+          </div>
         )}
 
         {/* ── Audit Logs Tab ─────────────────────────────────── */}

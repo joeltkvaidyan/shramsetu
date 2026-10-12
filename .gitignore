@@ -44,6 +44,10 @@ logs/*
 # Stray debug artifacts
 _tok.txt
 
+# TTS/STT benchmark output (wav dumps from ad-hoc bench runs)
+ai-service/_bench_out/
+ai-service/test_en.wav
+
 # Source zips produced for hand-off (git archive output, never commit)
 *.zip
 

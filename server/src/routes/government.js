@@ -338,6 +338,48 @@ router.post("/notifications/send", authenticate, requireGovernment, async (req, 
   }
 });
 
+// ── Officials directory (superadmin monitoring) ──────────────────────
+// Oversight view: every government account, the jurisdiction it covers,
+// and live worker/grievance counts inside that jurisdiction — how the
+// superadmin monitors each state official. Non-superadmins get 403:
+// officials must not be able to enumerate each other.
+router.get("/officials", authenticate, requireGovernment, async (req, res) => {
+  try {
+    const me = await User.findById(req.userId);
+    if (!me?.is_superadmin) {
+      return res.status(403).json({ detail: "Superadmin access required" });
+    }
+    const officials = await User.find({ role: "government" }).sort({ employee_id: 1 });
+    const rows = await Promise.all(
+      officials.map(async (o) => {
+        // Same scope machinery as the dashboards — the counts shown here are
+        // exactly what that official would see when they log in. The
+        // fail-closed official (no jurisdiction) therefore shows 0/0.
+        const { workerFilter, grievanceFilter } = await grievanceScopeFilter(o);
+        const [workers_in_scope, grievances_in_scope] = await Promise.all([
+          User.countDocuments(workerFilter),
+          Grievance.countDocuments(grievanceFilter),
+        ]);
+        return {
+          id: String(o._id),
+          employee_id: o.employee_id || null,
+          full_name: o.full_name,
+          department: o.department || null,
+          state: o.state || null,
+          district: o.district || null,
+          is_superadmin: Boolean(o.is_superadmin),
+          workers_in_scope,
+          grievances_in_scope,
+        };
+      })
+    );
+    res.json({ officials: rows });
+  } catch (err) {
+    console.error("[gov/officials]", err);
+    res.status(500).json({ detail: "Could not load officials." });
+  }
+});
+
 // ── Audit logs (superadmin only) ─────────────────────────────────────
 router.get("/audit-logs", authenticate, requireGovernment, async (req, res) => {
   try {
